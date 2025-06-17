@@ -1,0 +1,31 @@
+{
+  headerName: 'Description',
+  field: 'USER_VIEW_DESC',
+  flex: 1,
+  width: 200,
+  enableRowGroup: false,
+
+  tooltipValueGetter: (params) => {
+    const val = params.value;
+    if (val?.includes('CSI Matrix:')) {
+      try {
+        const jsonStr = val.split('CSI Matrix:')[1].trim();
+        const parsed = JSON.parse(jsonStr);
+        const exception = parsed?.[0]?.TOTAL_EXCPN_CNT || 'N/A';
+        const percentage = parsed?.[0]?.TOTAL_EXCPN_PCT || 'N/A';
+        return `Exception: ${exception}, Percentage: ${percentage}%`;
+      } catch {
+        return val;
+      }
+    }
+    return val;
+  },
+
+  tooltipComponentParams: { color: '#f5f5f5' },
+
+  cellRendererSelector: (params: ICellRendererParams) => {
+    return {
+      component: ManageViewsActionsCellComponent
+    };
+  }
+}
