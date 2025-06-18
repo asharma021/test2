@@ -1,176 +1,66 @@
-✅ Option 1: Tooltip (Quick Hover View)
-✅ Purpose:
-Display full description (including CSI matrix JSON) when user hovers over the cell.
+Below is one way to stop dumping the raw JSON into your description and instead build a human-readable string out of your CSI-matrix before you concatenate it into the overall RQST_DESC. In your popup component, where you currently do:
 
-✅ AG Grid Column Config:
 ts
 Copy
 Edit
-{
-  headerName: 'Request Description',
-  field: 'USER_VIEW_DESC',
-  tooltipValueGetter: (params) => params.value,
-  tooltipComponentParams: { color: '#f5f5f5' },
-  cellRendererSelector: (params: ICellRendererParams) => {
-    return { component: ManageViewsActionsCellComponent };
+// old
+this.createRequest(item, requestItemsLength, counter, matrixArray);
+you can map your array of objects into a flat, semicolon-separated, “CSI ID: … , Total Records: …” string:
+
+ts
+Copy
+Edit
+// build a human-readable CSI Matrix string
+const csiMatrixDesc: string = matrixArray
+  .map(m =>
+    `CSI ID: ${m.csi_desc || m.CSI_ID}, ` +
+    `Total Records: ${m.TOTAL_REC_CNT}, ` +
+    `Total Exceptions: ${m.TOTAL_EXCPN_CNT}, ` +
+    `Exception %: ${m.TOTAL_EXCPN_PCT}`
+  )
+  .join('; ');
+
+this.createRequest(item, requestItemsLength, counter, csiMatrixDesc);
+Then change your createRequest signature so it takes that already-formatted string instead of an any[]:
+
+diff
+Copy
+Edit
+@@ permit-to-build-popup.component.ts
+-  async createRequest(selectedRequestItem: any,
+-                      requestItemsLength: number,
+-                      counter: number,
+-                      csiMatrix: any[]) {
++  async createRequest(selectedRequestItem: any,
++                      requestItemsLength: number,
++                      counter: number,
++                      csiMatrixDesc: string) {
+
+    console.log(
+      `Permit – Variables: SelectedRequestItem=${JSON.stringify(selectedRequestItem)}, ` +
+      `RequestItemsLength=${requestItemsLength}, Counter=${counter}`
+    );
+
+    // … build your payload …
+
+-   + '; Maker Comments: ' + this.makerComments
+-   + '; CSI Matrix: ' + JSON.stringify(csiMatrix);
++   + '; Maker Comments: ' + this.makerComments
++   + '; CSI Matrix: ' + csiMatrixDesc;
+    
+    // … send to backend …
   }
-}
-✅ Add in HTML:
-In ag-grid.component.html:
+Now your RQST_DESC will look like:
 
-html
+yaml
 Copy
 Edit
-<ag-grid-angular
-  ...
-  [enableBrowserTooltips]="true"
-  ...
-></ag-grid-angular>
-✅ Result:
-User hovers → full content appears in a browser-native tooltip.
-
-✅ Option 2: Click to Expand in Angular Material Dialog (Modal)
-✅ Purpose:
-Let user click on the cell to see the full description (and CSI metrics) in a modal popup.
-
-🔹 Step 1: Update AG Grid Column
-In your component:
-
-ts
-Copy
-Edit
-{
-  headerName: 'Request Description',
-  field: 'USER_VIEW_DESC',
-  cellRenderer: (params) => {
-    const truncated = params.value?.length > 40 ? params.value.slice(0, 40) + '...' : params.value;
-    return `<span class="clickable-cell" title="Click to expand">${truncated}</span>`;
-  },
-  onCellClicked: (params) => {
-    this.openDescriptionDialog(params.value);
-  }
-}
-🔹 Step 2: Create Angular Dialog Component
-bash
-Copy
-Edit
-ng generate component description-dialog
-In description-dialog.component.ts:
-
-ts
-Copy
-Edit
-import { Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
-
-@Component({
-  selector: 'app-description-dialog',
-  templateUrl: './description-dialog.component.html'
-})
-export class DescriptionDialogComponent {
-  constructor(@Inject(MAT_DIALOG_DATA) public data: { description: string }) {}
-}
-In description-dialog.component.html:
-
-html
-Copy
-Edit
-<h2 mat-dialog-title>Full Request Description</h2>
-<mat-dialog-content>
-  <pre>{{ data.description }}</pre>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Close</button>
-</mat-dialog-actions>
-🔹 Step 3: Open Dialog from Grid Component
-In your main component (where AG Grid is used):
-
-ts
-Copy
-Edit
-import { MatDialog } from '@angular/material/dialog';
-import { DescriptionDialogComponent } from './description-dialog/description-dialog.component';
-
-constructor(private dialog: MatDialog) {}
-
-openDescriptionDialog(desc: string): void {
-  this.dialog.open(DescriptionDialogComponent, {
-    width: '600px',
-    data: { description: desc }
-  });
-}
-✅ Result:
-User clicks cell → modal appears with entire string (JSON included) for easy reading.
-
-✅ Option 3: Master-Detail Row Expansion (Best for CSI Matrix)
-✅ Purpose:
-Let user expand a row and view structured detail layout (like a CSI table or parsed JSON) directly in the row.
-
-🔹 Step 1: Enable Master Detail in AG Grid
-In ag-grid-angular tag:
-
-html
-Copy
-Edit
-<ag-grid-angular
-  ...
-  [masterDetail]="true"
-  [detailCellRendererParams]="detailCellRendererParams"
-  ...
-></ag-grid-angular>
-🔹 Step 2: Add detailCellRendererParams in Component
-ts
-Copy
-Edit
-detailCellRendererParams = {
-  detailGridOptions: {
-    columnDefs: [
-      { field: 'TOTAL_REC_CNT', headerName: 'Total Records' },
-      { field: 'TOTAL_EXCPN_CNT', headerName: 'Total Exceptions' },
-      { field: 'TOTAL_EXCPN_PCT', headerName: 'Exception %' }
-    ],
-    defaultColDef: {
-      flex: 1,
-      minWidth: 100
-    }
-  },
-  getDetailRowData: (params) => {
-    const desc = params.data.USER_VIEW_DESC;
-    const csiPart = desc?.split('CSI Matrix:')[1]?.trim();
-    try {
-      const parsed = JSON.parse(csiPart);
-      params.successCallback(parsed); // assume it's an array of CSI records
-    } catch (e) {
-      params.successCallback([{ TOTAL_REC_CNT: '-', TOTAL_EXCPN_CNT: '-', TOTAL_EXCPN_PCT: '-' }]);
-    }
-  }
-};
-✅ Result:
-User clicks “+” to expand → row shows a table view of the CSI Matrix.
-
-🧾 Summary Table
-Option	Use Case	User Action	Best For
-Tooltip	Quick peek on hover	Hover	Short or medium descriptions
-Dialog Modal	View large content in readable format	Click cell	Long multi-line content or JSON
-Master-Detail	Structured CSI Matrix in table layout	Expand row ( ➕ )	Structured data inside description
-
-Let me know which one you want to implement first — I can tailor it fully to your file names, module structure, and existing component setup.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Tools
-
+Permit To Deploy request for Rule Deployment Id: 2358153;
+Rule Desc: Test am59508 060925;
+Rationalized CDE Name: myCDE;
+Sending System ID: 165366;
+Product: Commercial Loans;
+Maker Comments: test;
+CSI Matrix: CSI ID: 165366, Total Records: 2000, Total Exceptions: 20, Exception %: 1.0000; CSI ID: 752, Total Records: 1000, Total Exceptions: 10, Exception %: 1.0000
+which is far more readable than the raw JSON blob.
 
