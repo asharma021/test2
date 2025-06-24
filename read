@@ -1,75 +1,30 @@
-1) Your template
-Open logical-rule.component.html, find your CSI dropdown and add a groupBy binding:
-
-diff
-Copy
-Edit
-   <!-- Target System CSI -->
-   <div class="lmn-col-auto lmn-form-group" style="width: 49%;">
-     <span class="lmn-form-label">
-       Target System CSI
-       <span class="lmn-form-required" style="color: red;">*</span>
-     </span>
--    <mt-dropdown
--      groupSelectable
--      virtualScroll
--      aria-label="Target System CSI Dropdown"
--      placeholder="Target System CSI"
--      textField="label"
--      showSearch
--      [items]="ruleTargetCSINameComboDropdownItems"
--      [(ngModel)]="deployment.targetSystemCSIName"
--      (closeEvent)="onDeploymentTargetSystemCSIChanged(deployment, i)">
--    </mt-dropdown>
-+    <mt-dropdown
-+      groupSelectable
-+      virtualScroll
-+      aria-label="Target System CSI Dropdown"
-+      placeholder="Target System CSI"
-+      textField="label"
-+      showSearch
-+      [items]="ruleTargetCSINameComboDropdownItems"
-+      [(ngModel)]="deployment.targetSystemCSIName"
-+      [groupBy]="csiGroupBy"                             <!-- ← here -->
-+      (closeEvent)="onDeploymentTargetSystemCSIChanged(deployment, i)">
-+    </mt-dropdown>
-   </div>
-2) Your component class
-Open logical-rule.component.ts, import the grouping‐fn type and define csiGroupBy. For example, if your items are strings like "FXCO TS : Trade Surveillance":
-
-ts
-Copy
-Edit
-// logical-rule.component.ts
-import { Component, OnInit, OnDestroy }    from '@angular/core';
-import { MtSelectGroupByFn }                from '@citi-icg-172888/ng-icgds/select';
-
-@Component({
-  /* … */
-})
-export class LogicalRuleComponent implements OnInit, OnDestroy {
-  // … your other fields …
-
-  /**
-   * group everything by the bit before the first " : "
-   */
-  public csiGroupBy: MtSelectGroupByFn = (item: string) => {
-    return item.split(' : ')[0].trim();
-  };
-
-  // … rest of your class …
-}
-If your items are objects
-Say each entry is { TRGT_SYS_NM, CSI_ID, label }, then you don’t even need a function — you can just do:
-
+public groupedCsi = [
+  {
+    group: 'FXCO TS',
+    items: [
+      { label: 'Trade Surveillance', value: 'FXCO TS : Trade Surveillance' },
+      { label: 'Reporting',          value: 'FXCO TS : Reporting'          }
+    ]
+  },
+  {
+    group: 'STD01',
+    items: [
+      { label: 'Standard Adaption',  value: 'STD01 : Standard Adaption'     },
+      { label: 'Standard Reporting', value: 'STD01 : Standard Reporting'    }
+    ]
+  }
+];
 html
 Copy
 Edit
+<!-- In your template -->
 <mt-dropdown
-  …
-  [groupBy]="'TRGT_SYS_NM'"
+  [items]="groupedCsi"
+  groupField="items"
+  groupLabelField="group"
   textField="label"
-  [items]="ruleTargetCSINameComboDropdownItems"
-  …
->
+  valueField="value"
+  placeholder="Target System CSI"
+  [(ngModel)]="deployment.targetSystemCSIName"
+  (closeEvent)="onDeploymentTargetSystemCSIChanged(deployment, i)">
 </mt-dropdown>
