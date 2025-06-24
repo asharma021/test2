@@ -1,78 +1,75 @@
-1. In your template (logical-rule.component.html)
-Find the <mt-select> (or <lmn-select>) that you’re using to render your CSI list. It will look something like:
+1) Your template
+Open logical-rule.component.html, find your CSI dropdown and add a groupBy binding:
 
-html
+diff
 Copy
 Edit
-<mt-select
-  [items]="TargetSystemCSIDropdownItems"
-  [label]="'Target System CSI'"
-  (valueChange)="onCsiSelected($event)">
-</mt-select>
-Change it to:
-
-html
-Copy
-Edit
-<mt-select
-  [items]="TargetSystemCSIDropdownItems"
-  [label]="'Target System CSI'"
-  [groupBy]="csiGroupBy"            <!-- ← add this line -->
-  (valueChange)="onCsiSelected($event)">
-  <!-- optional: custom item template -->
-  <ng-template let-item>
-    {{ item }}
-  </ng-template>
-</mt-select>
-2. In your component class (logical-rule.component.ts)
-Import the grouping function type at the top:
+   <!-- Target System CSI -->
+   <div class="lmn-col-auto lmn-form-group" style="width: 49%;">
+     <span class="lmn-form-label">
+       Target System CSI
+       <span class="lmn-form-required" style="color: red;">*</span>
+     </span>
+-    <mt-dropdown
+-      groupSelectable
+-      virtualScroll
+-      aria-label="Target System CSI Dropdown"
+-      placeholder="Target System CSI"
+-      textField="label"
+-      showSearch
+-      [items]="ruleTargetCSINameComboDropdownItems"
+-      [(ngModel)]="deployment.targetSystemCSIName"
+-      (closeEvent)="onDeploymentTargetSystemCSIChanged(deployment, i)">
+-    </mt-dropdown>
++    <mt-dropdown
++      groupSelectable
++      virtualScroll
++      aria-label="Target System CSI Dropdown"
++      placeholder="Target System CSI"
++      textField="label"
++      showSearch
++      [items]="ruleTargetCSINameComboDropdownItems"
++      [(ngModel)]="deployment.targetSystemCSIName"
++      [groupBy]="csiGroupBy"                             <!-- ← here -->
++      (closeEvent)="onDeploymentTargetSystemCSIChanged(deployment, i)">
++    </mt-dropdown>
+   </div>
+2) Your component class
+Open logical-rule.component.ts, import the grouping‐fn type and define csiGroupBy. For example, if your items are strings like "FXCO TS : Trade Surveillance":
 
 ts
 Copy
 Edit
-import { MtSelectGroupByFn } from '@citi-icg-172888/ng-icgds/select';
-Declare the csiGroupBy function on your class:
+// logical-rule.component.ts
+import { Component, OnInit, OnDestroy }    from '@angular/core';
+import { MtSelectGroupByFn }                from '@citi-icg-172888/ng-icgds/select';
 
-ts
-Copy
-Edit
+@Component({
+  /* … */
+})
 export class LogicalRuleComponent implements OnInit, OnDestroy {
-  // … all your other fields …
+  // … your other fields …
 
   /**
-   * If your items are simple strings like "FXCO TS : Trade Surveillance",
-   * group key = the part before the first " : "
+   * group everything by the bit before the first " : "
    */
   public csiGroupBy: MtSelectGroupByFn = (item: string) => {
     return item.split(' : ')[0].trim();
   };
 
-  // … rest of your component …
+  // … rest of your class …
 }
-If your dropdown items are objects (e.g. { TRGT_SYS_NM, CSI_ID, CSI_LABEL }), you can skip the function entirely and just do:
+If your items are objects
+Say each entry is { TRGT_SYS_NM, CSI_ID, label }, then you don’t even need a function — you can just do:
 
 html
 Copy
 Edit
-<mt-select
-  [items]="TargetSystemCSIDropdownItems"
-  [optionLabel]="'CSI_LABEL'"
-  [optionValue]="'CSI_ID'"
+<mt-dropdown
+  …
   [groupBy]="'TRGT_SYS_NM'"
-  [label]="'Target System CSI'">
-</mt-select>
-Bonus: Make sure you’ve imported the select module
-In your YourFeatureModule (or wherever this component is declared), add:
-
-ts
-Copy
-Edit
-import { MtSelectModule } from '@citi-icg-172888/ng-icgds/select';
-
-@NgModule({
-  imports: [
-    // …
-    MtSelectModule,
-  ],
-})
-export class YourFeatureModule { }
+  textField="label"
+  [items]="ruleTargetCSINameComboDropdownItems"
+  …
+>
+</mt-dropdown>
