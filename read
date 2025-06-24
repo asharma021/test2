@@ -1,30 +1,91 @@
-public groupedCsi = [
-  {
-    group: 'FXCO TS',
-    items: [
-      { label: 'Trade Surveillance', value: 'FXCO TS : Trade Surveillance' },
-      { label: 'Reporting',          value: 'FXCO TS : Reporting'          }
-    ]
-  },
-  {
-    group: 'STD01',
-    items: [
-      { label: 'Standard Adaption',  value: 'STD01 : Standard Adaption'     },
-      { label: 'Standard Reporting', value: 'STD01 : Standard Reporting'    }
-    ]
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-logical-rule',
+  templateUrl: './logical-rule.component.html',
+  styleUrls: ['./logical-rule.component.css']
+})
+export class LogicalRuleComponent implements OnInit {
+
+  // This object will hold the selected value from the dropdown.
+  // The ngModel from the HTML will bind to this property.
+  public deployment: any = { targetSystemCSIName: null };
+
+  // Hard-coded sample data for testing the dropdown.
+  public groupedCsi: any[] = [];
+
+  constructor() { }
+
+  ngOnInit() {
+    // We will populate the data here for the test.
+    this.groupedCsi = [
+      {
+        group: 'Master Data',
+        items: [
+          { label: 'Master Agreement Central', value: '162429 | Master Agreement Central' },
+          { label: 'Security Master Central',  value: '160829 | Security Master Central'  },
+          { label: 'Price Master Central',   value: '161380 | Price Master Central'   }
+        ]
+      },
+      {
+        group: 'Financial Systems',
+        items: [
+          { label: 'OASYS Financial', value: '752 | OASYS Financial' },
+          { label: 'Optima',          value: '161602 | Optima'         },
+        ]
+      },
+      {
+        group: 'Risk Management',
+        items: [
+            { label: 'CitiRisk Facility Management', value: '6684 | CitiRisk Facility Management' }
+        ]
+      },
+      {
+        group: 'Other',
+        items: [
+          { label: 'RUBY',                  value: '165366 | RUBY'                  },
+          { label: 'Genesis Datamart - NAM', value: '169876 | Genesis Datamart - NAM' },
+        ]
+      }
+    ];
   }
-];
-html
-Copy
-Edit
-<!-- In your template -->
+
+  // This function handles the event when the dropdown is closed.
+  onDeploymentTargetSystemCSIChanged() {
+    console.log('The selected system is:', this.deployment.targetSystemCSIName);
+  }
+}
+
+
+
+<h3>Test Dropdown</h3>
+
 <mt-dropdown
+  style="width: 300px;"
+  groupSelectable
+  virtualScroll
+  placeholder="Target System CSI"
+  showSearch
+
   [items]="groupedCsi"
   groupField="items"
   groupLabelField="group"
+
   textField="label"
   valueField="value"
-  placeholder="Target System CSI"
+
   [(ngModel)]="deployment.targetSystemCSIName"
-  (closeEvent)="onDeploymentTargetSystemCSIChanged(deployment, i)">
+  (closeEvent)="onDeploymentTargetSystemCSIChanged()">
 </mt-dropdown>
+
+<div style="margin-top: 20px;">
+  <strong>Selected Value:</strong>
+  <pre>{{ deployment.targetSystemCSIName || 'Nothing selected' }}</pre>
+</div>
+
+
+
+
+
+
+
