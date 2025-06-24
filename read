@@ -1,6 +1,64 @@
-tooltipValueGetter: (p: ITooltipParams) =>
-    (p.value as string || '')
-      .split(';')
-      .map(s => s.trim())
-      .join('\n'),
-  tooltipComponentParams: { tooltipClass: 'pre-line-tooltip' },
+this.ruleTargetCSINameComboDropdownItemsSubscription.add(
+  this.reportDropdownService.ruleTargetCSINameComboDropdownItems$.subscribe(
+    (data: any) => {
+      // Assuming 'data' looks like: { "Group A": ["CSI One"], "Group B": ["CSI Two", "CSI Three"] }
+      if (data) {
+        const stringArrayForLogic = [];
+        const objectArrayForDisplay = [];
+
+        for (const groupName in data) {
+          if (Object.prototype.hasOwnProperty.call(data, groupName)) {
+            data[groupName].forEach(itemName => {
+              // 1. Populate the simple string array for your existing .find() logic
+              stringArrayForLogic.push(itemName);
+
+              // 2. Populate the new object array for the grouped dropdown
+              objectArrayForDisplay.push({
+                label: itemName,
+                value: itemName,
+                category: groupName // This is the field we will group by
+              });
+            });
+          }
+        }
+
+        // Assign to the original property - NO CHANGE to your existing logic
+        this.ruleTargetCSINameComboDropdownItems = stringArrayForLogic;
+
+        // Assign to the new property for the UI
+        this.ruleTargetCSIDropdownItemsForDisplay = objectArrayForDisplay;
+
+        this.ruleTargetCSINameComboDropdownItemsSubscription.unsubscribe();
+      }
+    }
+  )
+);
+
+
+
+
+
+
+
+
+<div class="lmn-col-auto lmn-form-group" style="width: 49%;">
+    <span class="lmn-form-label">Target System CSI
+        <span class="lmn-form-required" style="color: red;">*</span>
+    </span>
+
+    <mt-dropdown
+        virtualScroll
+        aria-label="Target System CSI Dropdown"
+        placeholder="Target System CSI"
+        textField="label"
+        showSearch
+        
+        [items]="ruleTargetCSIDropdownItemsForDisplay"
+        
+        [groupBy]="'category'"
+
+        [(ngModel)]="deployment.targetSystemCSIName"
+        (closeEvent)="onDeploymentTargetSystemCSIChanged(deployment, i)"
+        [readonly]="addLogicalRulesFormGroup.get('targetsystem')?.value != null">
+    </mt-dropdown>
+</div>
