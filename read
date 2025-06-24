@@ -1,64 +1,145 @@
-this.ruleTargetCSINameComboDropdownItemsSubscription.add(
-  this.reportDropdownService.ruleTargetCSINameComboDropdownItems$.subscribe(
-    (data: any) => {
-      // Assuming 'data' looks like: { "Group A": ["CSI One"], "Group B": ["CSI Two", "CSI Three"] }
-      if (data) {
-        const stringArrayForLogic = [];
-        const objectArrayForDisplay = [];
+1. Modify logical-rule.component.ts
+First, let's define the structure for our systems and groups. Add these interfaces outside of your component class, typically at the top of the file.
 
-        for (const groupName in data) {
-          if (Object.prototype.hasOwnProperty.call(data, groupName)) {
-            data[groupName].forEach(itemName => {
-              // 1. Populate the simple string array for your existing .find() logic
-              stringArrayForLogic.push(itemName);
+TypeScript
 
-              // 2. Populate the new object array for the grouped dropdown
-              objectArrayForDisplay.push({
-                label: itemName,
-                value: itemName,
-                category: groupName // This is the field we will group by
-              });
-            });
+// Add these interfaces near the top of your file
+interface System {
+  value: string;
+  viewValue: string;
+}
+
+interface SystemGroup {
+  name: string;
+  systems: System[];
+  disabled?: boolean;
+}
+Next, update your LogicalRuleComponent class. I've marked the new lines you need to add.
+
+TypeScript
+
+// Import FormControl if it's not already there
+import { FormControl, ... } from '@angular/forms';
+// ... other imports
+
+// ... interface definitions from above
+
+@Component({
+  selector: 'app-logical-rule',
+  templateUrl: './logical-rule.component.html',
+  styleUrls: ['./logical-rule.component.css']
+})
+export class LogicalRuleComponent implements OnInit, OnDestroy {
+  // ... your existing properties
+
+  // ++ ADD a new FormControl for the select dropdown
+  targetSystemCsiControl = new FormControl('');
+
+  // ++ ADD a new property to hold the final grouped data for the dropdown
+  public targetSystemGroups: SystemGroup[] = [];
+
+  // This is your existing property that will receive data from the service
+  public TargetSystemCSIDropdownItems: any[] = [];
+
+  // ... your other existing properties and constructor
+
+  ngOnInit(): void {
+    // ... your existing ngOnInit logic
+    this.setDropdownSubscriptions();
+  }
+
+  setDropdownSubscriptions() {
+    // ... your other existing subscriptions
+
+    // MODIFICATION: Update your subscription to process the data
+    this.TargetSystemDropdownDataSubscription.add(
+      this.reportDropdownService.ruleTargetCSIDropdownItems$.subscribe(
+        (data: any) => {
+          if (data != null && data != undefined) {
+            // The original data is stored
+            this.TargetSystemCSIDropdownItems = data;
+
+            // ++ ADD a call to our new processing function
+            this.processSystemDataIntoGroups(data);
+
+            this.TargetSystemDropdownDataSubscription.unsubscribe();
           }
         }
+      )
+    );
 
-        // Assign to the original property - NO CHANGE to your existing logic
-        this.ruleTargetCSINameComboDropdownItems = stringArrayForLogic;
+    // ... your other existing subscriptions
+  }
 
-        // Assign to the new property for the UI
-        this.ruleTargetCSIDropdownItemsForDisplay = objectArrayForDisplay;
+  // ++ ADD this new private method to the class
+  private processSystemDataIntoGroups(items: string[]): void {
+    // This is example grouping logic. You should adapt the keywords
+    // ('Central', 'Financial', 'Risk', 'Genesis') to fit your actual business domains.
+    const groups: { [key: string]: System[] } = {
+      'Master Data': [],
+      'Financial Systems': [],
+      'Risk Management': [],
+      'Data Marts': [],
+      'Other': []
+    };
 
-        this.ruleTargetCSINameComboDropdownItemsSubscription.unsubscribe();
+    items.forEach(item => {
+      // Assuming the format is "ID | Name"
+      const parts = item.split('|').map(p => p.trim());
+      const system: System = {
+        value: parts[0],      // The value is the CSI number, e.g., "165366"
+        viewValue: item       // The viewValue is the full string, e.g., "165366 | RUBY"
+      };
+
+      if (item.includes('Central')) {
+        groups['Master Data'].push(system);
+      } else if (item.includes('Financial')) {
+        groups['Financial Systems'].push(system);
+      } else if (item.includes('Risk')) {
+        groups['Risk Management'].push(system);
+      } else if (item.includes('Genesis')) {
+        groups['Data Marts'].push(system);
+      } else {
+        groups['Other'].push(system);
       }
+    });
+
+    // Transform the groups object into the array structure the template needs
+    this.targetSystemGroups = Object.keys(groups)
+      .filter(key => groups[key].length > 0) // Only include groups that have systems
+      .map(key => ({
+        name: key,
+        systems: groups[key]
+      }));
+  }
+
+  // ... rest of your component class
+}
+2. Modify logical-rule.component.html
+Now, add the following Angular Material mat-select component to your template where you want the dropdown to appear. This code uses the new targetSystemGroups property.
+
+HTML
+
+<h4>Target System CSI (mat-select with Groups)</h4>
+
+<mat-form-field>
+  <mat-label>Target System CSI</mat-label>
+  <mat-select [formControl]="targetSystemCsiControl">
+    <mat-option>-- None --</mat-option>
+
+    @for (group of targetSystemGroups; track group) {
+      <mat-optgroup [label]="group.name" [disabled]="group.disabled">
+
+        @for (system of group.systems; track system) {
+          <mat-option [value]="system.value">{{system.viewValue}}</mat-option>
+        }
+
+      </mat-optgroup>
     }
-  )
-);
-
-
-
-
-
-
-
-
-<div class="lmn-col-auto lmn-form-group" style="width: 49%;">
-    <span class="lmn-form-label">Target System CSI
-        <span class="lmn-form-required" style="color: red;">*</span>
-    </span>
-
-    <mt-dropdown
-        virtualScroll
-        aria-label="Target System CSI Dropdown"
-        placeholder="Target System CSI"
-        textField="label"
-        showSearch
-        
-        [items]="ruleTargetCSIDropdownItemsForDisplay"
-        
-        [groupBy]="'category'"
-
-        [(ngModel)]="deployment.targetSystemCSIName"
-        (closeEvent)="onDeploymentTargetSystemCSIChanged(deployment, i)"
-        [readonly]="addLogicalRulesFormGroup.get('targetsystem')?.value != null">
-    </mt-dropdown>
-</div>
+  </mat-select>
+</mat-form-field>
+Explanation:
+Data Transformation: The new processSystemDataIntoGroups method takes the flat array of strings from your service. It categorizes each string into a group based on keywords (like 'Central', 'Risk', etc.). You should adjust these keywords to match your actual data's business logic.
+Data Structure: The code creates an array targetSystemGroups, where each element is an object with a group name and an array of systems. This structure works perfectly with mat-optgroup.
+HTML Binding: The HTML template loops through targetSystemGroups to create the <mat-optgroup> headers. A nested loop then creates a <mat-option> for each system inside that group.
+FormControl: targetSystemCsiControl will hold the selected system's value (the CSI number). You can subscribe to its valueChanges or access its value with this.targetSystemCsiControl.value.
