@@ -1,91 +1,62 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-logical-rule',
-  templateUrl: './logical-rule.component.html',
-  styleUrls: ['./logical-rule.component.css']
+  selector: 'app-select-sample',
+  templateUrl: './select-sample.component.html',
 })
-export class LogicalRuleComponent implements OnInit {
+export class SelectSampleComponent implements OnInit {
 
-  // This object will hold the selected value from the dropdown.
-  // The ngModel from the HTML will bind to this property.
-  public deployment: any = { targetSystemCSIName: null };
+  // This will hold the selected value from the dropdown.
+  public selectedSystemValue: string | null = null;
 
-  // Hard-coded sample data for testing the dropdown.
-  public groupedCsi: any[] = [];
+  // A flat list of system objects.
+  // The 'category' property will be used for grouping.
+  public systems: any[] = [];
 
   constructor() { }
 
   ngOnInit() {
-    // We will populate the data here for the test.
-    this.groupedCsi = [
-      {
-        group: 'Master Data',
-        items: [
-          { label: 'Master Agreement Central', value: '162429 | Master Agreement Central' },
-          { label: 'Security Master Central',  value: '160829 | Security Master Central'  },
-          { label: 'Price Master Central',   value: '161380 | Price Master Central'   }
-        ]
-      },
-      {
-        group: 'Financial Systems',
-        items: [
-          { label: 'OASYS Financial', value: '752 | OASYS Financial' },
-          { label: 'Optima',          value: '161602 | Optima'         },
-        ]
-      },
-      {
-        group: 'Risk Management',
-        items: [
-            { label: 'CitiRisk Facility Management', value: '6684 | CitiRisk Facility Management' }
-        ]
-      },
-      {
-        group: 'Other',
-        items: [
-          { label: 'RUBY',                  value: '165366 | RUBY'                  },
-          { label: 'Genesis Datamart - NAM', value: '169876 | Genesis Datamart - NAM' },
-        ]
-      }
+    // Populate the flat list of data for the test.
+    this.systems = [
+      { id: '162429', name: 'Master Agreement Central', category: 'Master Data' },
+      { id: '160829', name: 'Security Master Central',  category: 'Master Data' },
+      { id: '161380', name: 'Price Master Central',   category: 'Master Data' },
+      { id: '752',    name: 'OASYS Financial',        category: 'Financial Systems' },
+      { id: '161602', name: 'Optima',                 category: 'Financial Systems' },
+      { id: '6684',   name: 'CitiRisk Facility Management', category: 'Risk Management' },
+      { id: '165366', name: 'RUBY',                   category: 'Other' },
+      { id: '169876', name: 'Genesis Datamart - NAM', category: 'Other' },
     ];
   }
 
-  // This function handles the event when the dropdown is closed.
-  onDeploymentTargetSystemCSIChanged() {
-    console.log('The selected system is:', this.deployment.targetSystemCSIName);
+  onSelectionChange(selectedItem: any) {
+    console.log('Selection Changed:', selectedItem);
   }
 }
 
 
 
-<h3>Test Dropdown</h3>
 
-<mt-dropdown
-  style="width: 300px;"
-  groupSelectable
-  virtualScroll
-  placeholder="Target System CSI"
-  showSearch
 
-  [items]="groupedCsi"
-  groupField="items"
-  groupLabelField="group"
 
-  textField="label"
-  valueField="value"
 
-  [(ngModel)]="deployment.targetSystemCSIName"
-  (closeEvent)="onDeploymentTargetSystemCSIChanged()">
-</mt-dropdown>
+<h3>mt-select Grouping Sample</h3>
+
+<mt-select
+  style="width: 350px;"
+  placeholder="Select a System"
+
+  [items]="systems"
+  [groupBy]="'category'"
+
+  bindLabel="name"
+  bindValue="id"
+
+  [(ngModel)]="selectedSystemValue"
+  (change)="onSelectionChange($event)">
+</mt-select>
 
 <div style="margin-top: 20px;">
-  <strong>Selected Value:</strong>
-  <pre>{{ deployment.targetSystemCSIName || 'Nothing selected' }}</pre>
+  <strong>Selected System ID:</strong>
+  <pre>{{ selectedSystemValue || 'Nothing selected' }}</pre>
 </div>
-
-
-
-
-
-
-
