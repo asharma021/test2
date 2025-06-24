@@ -60,3 +60,8 @@ export class SelectSampleComponent implements OnInit {
   <strong>Selected System ID:</strong>
   <pre>{{ selectedSystemValue || 'Nothing selected' }}</pre>
 </div>
+
+
+
+public onSelectionChange(selectedItem: any): void {
+    console.log('Selection Changed:', selectedItem);
