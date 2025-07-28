@@ -1,67 +1,30 @@
-import { Component, OnInit } from '@angular/core';
+Subject: Request for Team Change Due to Ongoing Conflicts and Unfair Treatment
 
-@Component({
-  selector: 'app-select-sample',
-  templateUrl: './select-sample.component.html',
-})
-export class SelectSampleComponent implements OnInit {
+Dear [HR Manager's Name or Supervisor's Name],
 
-  // This will hold the selected value from the dropdown.
-  public selectedSystemValue: string | null = null;
+I hope this message finds you well.
 
-  // A flat list of system objects.
-  // The 'category' property will be used for grouping.
-  public systems: any[] = [];
+I am writing to formally raise concerns regarding my current work environment and ongoing conflicts with my manager. Since joining this team, I have consistently encountered challenges in communication and collaboration with my reporting manager, which have affected both my morale and productivity.
 
-  constructor() { }
+Although I was initially hired as a Java Developer, I have been assigned primarily to testing tasks over the past three years. Recently, I was asked to resume coding, including Angular development, which I’ve not worked on in the past 3–4 years. I accepted the challenge and have been putting in my best efforts to deliver quality work. However, I feel that my efforts are being unfairly criticized regardless of the outcome.
 
-  ngOnInit() {
-    // Populate the flat list of data for the test.
-    this.systems = [
-      { id: '162429', name: 'Master Agreement Central', category: 'Master Data' },
-      { id: '160829', name: 'Security Master Central',  category: 'Master Data' },
-      { id: '161380', name: 'Price Master Central',   category: 'Master Data' },
-      { id: '752',    name: 'OASYS Financial',        category: 'Financial Systems' },
-      { id: '161602', name: 'Optima',                 category: 'Financial Systems' },
-      { id: '6684',   name: 'CitiRisk Facility Management', category: 'Risk Management' },
-      { id: '165366', name: 'RUBY',                   category: 'Other' },
-      { id: '169876', name: 'Genesis Datamart - NAM', category: 'Other' },
-    ];
-  }
+Here are some specific concerns:
 
-  onSelectionChange(selectedItem: any) {
-    console.log('Selection Changed:', selectedItem);
-  }
-}
+I am often blamed for issues that are not directly under my control, including production incidents and requirements ambiguity.
 
+Despite following written requirements precisely, I’m frequently questioned or blamed for implementation details that were clearly specified in the documentation.
 
+Work assignments are not well-scoped. For instance, tasks marked as 3-point stories end up requiring changes in numerous backend files, frontend files, and stored procedures — with unrealistic deadlines.
 
+I experience discouraging treatment, including being spoken to disrespectfully and being treated as if I’m less competent than my peers, without any encouragement or recognition of my efforts.
 
+There appears to be a lack of proper testing processes. Even after passing UAT, issues are later blamed solely on me instead of reviewing the testing process as a whole.
 
+This constant pressure and lack of support have created a very stressful working environment for me. I would sincerely appreciate your intervention to either facilitate a discussion to improve the situation or to consider moving me to a different team where I can perform to the best of my abilities in a healthier and more respectful environment.
 
+Thank you for taking the time to review this. I remain committed to my work and the organization, and I’m hopeful for a resolution that supports mutual growth.
 
-<h3>mt-select Grouping Sample</h3>
-
-<mt-select
-  style="width: 350px;"
-  placeholder="Select a System"
-
-  [items]="systems"
-  [groupBy]="'category'"
-
-  bindLabel="name"
-  bindValue="id"
-
-  [(ngModel)]="selectedSystemValue"
-  (change)="onSelectionChange($event)">
-</mt-select>
-
-<div style="margin-top: 20px;">
-  <strong>Selected System ID:</strong>
-  <pre>{{ selectedSystemValue || 'Nothing selected' }}</pre>
-</div>
-
-
-
-public onSelectionChange(selectedItem: any): void {
-    console.log('Selection Changed:', selectedItem);
+Sincerely,
+[Your Full Name]
+[Employee ID, if applicable]
+[Contact Info]
