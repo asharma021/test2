@@ -1,6 +1,1 @@
-
-</pre>
-
-<div style="font-family: Arial, sans-serif; font-size: 14px; margin-top: 20px; line-height: 1.6;">
-    
-</div>
+<p style="margin-top: 0; margin-bottom: 20px;"><b>For additional resources such as Instructions/Guides, visit our</b> <a href="%%ACCESS_CONTROL_LINK%%" style="color: #0078d4; font-weight: bold; text-decoration: underline;">Access Control Website</a></p>
