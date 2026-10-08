@@ -1,6 +1,1 @@
-
-Thanks, Josh. I’ll sync up with them to get the required DBT_PG_USER and DBT_PG_PASS variables configured for DEV, TEST, and PROD, and review the CI/CD documentation and profiles.yml for the non-sensitive database settings.
-
-I currently have Developer access in GitLab, but I don’t see Settings → CI/CD → Variables. Would I need additional permissions to manage these variables?
-
-I’m also happy to connect and go over the changes before we proceed with testing and deployment.
+Hi Ben, Josh asked me to review the GitLab CI/CD variables for the OA Business Layer pipeline. Could you confirm the DBT_PG_USER and DBT_PG_PASSWORD credentials for DEV, TEST, and PROD, and help arrange their secure configuration in GitLab? Also, could you confirm the TEST and PROD database host, port, and database names for profiles.yml?
