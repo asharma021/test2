@@ -1,1 +1,1 @@
-Hi Ben, Josh asked me to review the GitLab CI/CD variables for the OA Business Layer pipeline. Could you confirm the DBT_PG_USER and DBT_PG_PASSWORD credentials for DEV, TEST, and PROD, and help arrange their secure configuration in GitLab? Also, could you confirm the TEST and PROD database host, port, and database names for profiles.yml?
+
