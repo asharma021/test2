@@ -1,1 +1,2 @@
-Hi Josh, I’m reviewing pipeline #66564 on the development branch. I noticed that env_setup is currently manual and dbt_compile is waiting on it. Is it okay for me to trigger env_setup to continue DEV testing, or is there anything I should verify first regarding the runner, dependencies, or environment configuration?
+
+Thanks Josh. I’ll focus on reviewing the GitLab CI/CD variables while you’re working on the pipeline changes. I currently have Developer access and don’t see Settings → CI/CD. Would I need Maintainer access to review the existing variables, or is there another way you recommend?
