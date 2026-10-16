@@ -1,43 +1,27 @@
 
-# =====================================================
-# PHASE 2 - POSTGRESQL EL EXECUTION ANALYSIS
-# READ ONLY - NO DATABASE MODIFICATIONS
-# =====================================================
+# PHASE 3 - SAFE CONFIGURATION CHECK
+# No database connections or modifications
 
-Write-Host "`n=== VERIFY-ONLY IMPLEMENTATION ===" -ForegroundColor Cyan
+Write-Host "`n=== CURRENT BRANCH ===" -ForegroundColor Cyan
+git branch --show-current
 
-Get-ChildItem src/extract_load -Recurse -Filter *.py |
-    Select-String -Pattern 'verify.only|verify_only|verify-counts|verify_output' |
-    Select-Object Path, LineNumber, Line
+Write-Host "`n=== ENVIRONMENT RESOLUTION ===" -ForegroundColor Cyan
+Select-String -Path src/extract_load/common/env.py `
+  -Pattern 'def target_credentials|def target_endpoint|def resolve_env|EL_ENV_FILE' `
+  -Context 2,15
 
+Write-Host "`n=== CLI VERIFY BEHAVIOR ===" -ForegroundColor Cyan
+Select-String -Path src/extract_load/common/cli.py `
+  -Pattern 'verify_only|verify_counts|run_verification' `
+  -Context 4,10
 
-Write-Host "`n=== POSTGRESQL RUNNER ===" -ForegroundColor Cyan
+Write-Host "`n=== POSTGRESQL CONFIGURATION ===" -ForegroundColor Cyan
+Get-Content src/extract_load/postgres/tables.yml -TotalCount 75
 
-Get-Content src/extract_load/postgres/run.py -TotalCount 180
+Write-Host "`n=== CI JOB RULES ===" -ForegroundColor Cyan
+Select-String -Path .gitlab-ci.yml `
+  -Pattern 'postgres_extract_load:|\.el_upstream:|allow_failure: true' `
+  -Context 4,12
 
-
-Write-Host "`n=== POSTGRESQL ENTRY POINT ===" -ForegroundColor Cyan
-
-Get-Content src/extract_load/postgres/__main__.py -TotalCount 100
-
-
-Write-Host "`n=== DATABASE TARGET RESOLUTION ===" -ForegroundColor Cyan
-
-Get-Content src/extract_load/common/target.py -TotalCount 160
-
-
-Write-Host "`n=== POSTGRESQL CONNECTION HANDLING ===" -ForegroundColor Cyan
-
-Get-Content src/extract_load/postgres/connections.py -TotalCount 140
-
-
-Write-Host "`n=== FAILURE HANDLING ===" -ForegroundColor Cyan
-
-Get-ChildItem src/extract_load/postgres -Filter *.py |
-    Select-String -Pattern 'raise|rollback|commit|sys.exit|return False' |
-    Select-Object Path, LineNumber, Line
-
-
-Write-Host "`n=== FINAL STATUS ===" -ForegroundColor Cyan
-
+Write-Host "`n=== WORKING TREE ===" -ForegroundColor Cyan
 git status --short
