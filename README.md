@@ -1,38 +1,44 @@
 
 # ============================================================
-# POSTGRESQL EL - PHASE 1: OFFLINE VALIDATION
-# No database connections or data modifications
+# PHASE 2 - POSTGRESQL EL EXECUTION ANALYSIS
+# READ ONLY - NO DATABASE CONNECTIONS
 # ============================================================
 
-Write-Host "`n=== CURRENT BRANCH ===" -ForegroundColor Cyan
-git branch --show-current
-git status --short
+Write-Host "`n=== 1. VERIFY-ONLY IMPLEMENTATION ===" -ForegroundColor Cyan
 
-Write-Host "`n=== PYTHON VERSION ===" -ForegroundColor Cyan
-python --version
+Get-ChildItem src/extract_load -Recurse -Filter *.py |
+    Select-String -Pattern 'verify.only|verify_only|verify-counts|verify_output' |
+    Select-Object Path, LineNumber, Line
 
-Write-Host "`n=== UV VERSION ===" -ForegroundColor Cyan
-uv --version
 
-Write-Host "`n=== PYTHON SYNTAX VALIDATION ===" -ForegroundColor Cyan
-python -m compileall -q src/extract_load
+Write-Host "`n=== 2. POSTGRESQL RUNNER ===" -ForegroundColor Cyan
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Python syntax validation FAILED" -ForegroundColor Red
-} else {
-    Write-Host "Python syntax validation PASSED" -ForegroundColor Green
-}
+Get-Content src/extract_load/postgres/run.py -TotalCount 180
 
-Write-Host "`n=== GIT WHITESPACE CHECK ===" -ForegroundColor Cyan
-git diff --check
 
-Write-Host "`n=== POSTGRESQL MODULE FILES ===" -ForegroundColor Cyan
-Get-ChildItem src/extract_load/postgres -Filter *.py |
-    Select-Object Name
+Write-Host "`n=== 3. POSTGRESQL ENTRY POINT ===" -ForegroundColor Cyan
 
-Write-Host "`n=== TABLE CONFIGURATION ===" -ForegroundColor Cyan
-Get-Item src/extract_load/postgres/tables.yml |
-    Select-Object Name, Length
+Get-Content src/extract_load/postgres/__main__.py -TotalCount 100
 
-Write-Host "`n=== FINAL STATUS ===" -ForegroundColor Cyan
+
+Write-Host "`n=== 4. DATABASE TARGET RESOLUTION ===" -ForegroundColor Cyan
+
+Get-Content src/extract_load/common/target.py -TotalCount 160
+
+
+Write-Host "`n=== 5. CONNECTION CONFIGURATION REFERENCES ===" -ForegroundColor Cyan
+
+Get-ChildItem src/extract_load -Recurse -Filter *.py |
+    Select-String -Pattern 'DBT_TARGET|DBT_PG_USER|TARGET_PG_|EL_ENV_FILE|SRC_PG_' |
+    Select-Object Path, LineNumber, Line
+
+
+Write-Host "`n=== 6. CI EXECUTION AND BRANCH RULES ===" -ForegroundColor Cyan
+
+$ci = Get-Content .gitlab-ci.yml
+$ci[485..548]
+
+
+Write-Host "`n=== 7. FINAL GIT STATUS ===" -ForegroundColor Cyan
+
 git status --short
