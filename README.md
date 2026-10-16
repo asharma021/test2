@@ -1,37 +1,40 @@
-
-# ==================================================
-# STEP 2 - INSPECT UPDATED POSTGRESQL EL PIPELINE
-# ==================================================
-
-Select-String -Path .gitlab-ci.yml -Pattern '^postgres_extract_load:' -Context 0,90
-
-
-# ==================================================
-# STEP 3 - INSPECT EXTRACT/LOAD PYTHON FILES
-# ==================================================
-
-# List all Python files
-Get-ChildItem src/extract_load -Recurse -Filter *.py |
-Select-Object FullName
-
-# Check PostgreSQL configuration directory
-Get-ChildItem src/extract_load/postgres
-
-
-# ==================================================
-# STEP 4 - REVIEW EL DOCUMENTATION
-# ==================================================
-
-# Read Extract/Load README
-Get-Content src/extract_load/README.md -TotalCount 100
-
-# Read onboarding instructions
-Get-Content docs/onboarding/12-new-data-end-to-end.md -TotalCount 100
-
-
-# ==================================================
-# VERIFY CURRENT BRANCH
-# ==================================================
+# ============================================
+# STEP 1 - CONFIRM YOUR FEATURE BRANCH
+# ============================================
 
 git branch --show-current
-git status
+git status --short
+
+
+# ============================================
+# STEP 2 - FIND EL SHARED TEMPLATES
+# ============================================
+
+Select-String -Path .gitlab-ci.yml `
+  -Pattern '^\.(el_upstream|el_job):' `
+  -Context 0,100
+
+
+# ============================================
+# STEP 3 - FIND POSTGRESQL JOB
+# ============================================
+
+Select-String -Path .gitlab-ci.yml `
+  -Pattern '^postgres_extract_load:' `
+  -Context 0,15
+
+
+# ============================================
+# STEP 4 - FIND FAILURE HANDLING
+# ============================================
+
+Select-String -Path .gitlab-ci.yml `
+  -Pattern 'allow_failure|exit |EL_MODULE|DBT_TARGET' `
+  -Context 2,3
+
+
+# ============================================
+# STEP 5 - CHECK AVAILABLE EL COMMANDS
+# ============================================
+
+Get-Content src/extract_load/README.md -TotalCount 130
