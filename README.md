@@ -1,40 +1,28 @@
 # ============================================
-# STEP 1 - CONFIRM YOUR FEATURE BRANCH
+# STEP 5 - INSPECT SHARED EL CI TEMPLATES
 # ============================================
 
+Write-Host "`n=== CURRENT BRANCH ===" -ForegroundColor Cyan
 git branch --show-current
 git status --short
 
-
-# ============================================
-# STEP 2 - FIND EL SHARED TEMPLATES
-# ============================================
-
+Write-Host "`n=== EL TEMPLATE LOCATIONS ===" -ForegroundColor Cyan
 Select-String -Path .gitlab-ci.yml `
-  -Pattern '^\.(el_upstream|el_job):' `
-  -Context 0,100
+  -Pattern '^\.(el_job|el_upstream):'
 
-
-# ============================================
-# STEP 3 - FIND POSTGRESQL JOB
-# ============================================
-
+Write-Host "`n=== SHARED EL TEMPLATES ===" -ForegroundColor Cyan
 Select-String -Path .gitlab-ci.yml `
-  -Pattern '^postgres_extract_load:' `
-  -Context 0,15
+  -Pattern '^\.(el_job|el_upstream):' `
+  -Context 0,65
 
+Write-Host "`n=== PIPELINE INPUTS ===" -ForegroundColor Cyan
+Get-Content .gitlab-ci.yml -TotalCount 110
 
-# ============================================
-# STEP 4 - FIND FAILURE HANDLING
-# ============================================
+Write-Host "`n=== POSTGRESQL TABLE CONFIGURATION ===" -ForegroundColor Cyan
+Get-Content src/extract_load/postgres/tables.yml -TotalCount 100
 
-Select-String -Path .gitlab-ci.yml `
-  -Pattern 'allow_failure|exit |EL_MODULE|DBT_TARGET' `
-  -Context 2,3
+Write-Host "`n=== POSTGRESQL CLI ENTRY POINT ===" -ForegroundColor Cyan
+Get-Content src/extract_load/postgres/__main__.py -TotalCount 100
 
-
-# ============================================
-# STEP 5 - CHECK AVAILABLE EL COMMANDS
-# ============================================
-
-Get-Content src/extract_load/README.md -TotalCount 130
+Write-Host "`n=== POSTGRESQL RUNNER CODE ===" -ForegroundColor Cyan
+Get-Content src/extract_load/postgres/run.py -TotalCount 130
