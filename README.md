@@ -1,1 +1,1 @@
-Get-Content .\src\extract_load\postgres\connections.py | Select-Object -First 120
+Get-Content .\src\extract_load\common\connections.py | Select-Object -First 150
