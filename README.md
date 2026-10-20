@@ -1,1 +1,1 @@
-uv run --no-sync extract-load-postgres --help
+Get-Content .\src\extract_load\postgres\tables.yaml
