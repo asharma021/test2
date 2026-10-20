@@ -1,2 +1,5 @@
-Get-Content .\dbt\profiles.yml |
-Select-String -Pattern 'dev:|host:|port:|dbname:|database:|schema:|user:' -Context 2,2
+Get-ChildItem Env: |
+Where-Object {
+    $_.Name -match '^(SRC_PG_|EL_ENV_FILE)'
+} |
+Select-Object -ExpandProperty Name
