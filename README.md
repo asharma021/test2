@@ -1,2 +1,2 @@
-Get-Content .\extract_load.env.example |
-Select-String -Pattern "SRC_PG_|TARGET_PG_|DBT_PG_|EL_ENV_FILE" -Context 2,1
+Get-Content .\src\extract_load\postgres\run.py |
+Select-String -Pattern "verify.only|verify_only|get_connection|SRC_PG" -Context 4,5
