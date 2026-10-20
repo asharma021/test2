@@ -1,1 +1,1 @@
-uv run --no-sync python -c "import yaml; from pathlib import Path; p=Path('src/extract_load/postgres/tables.yml'); d=yaml.safe_load(p.read_text(encoding='utf-8')); print('YAML parsed successfully'); print('Top-level keys:', list(d.keys()))"
+Get-Content .\src\extract_load\common\config.py | Select-Object -First 100
