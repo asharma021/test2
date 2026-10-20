@@ -1,5 +1,2 @@
-Get-ChildItem Env: |
-Where-Object {
-    $_.Name -match '^(SRC_PG_|EL_ENV_FILE)'
-} |
-Select-Object -ExpandProperty Name
+Get-Content .\src\extract_load\common\config.py |
+Select-String -Pattern 'EL_ENV_FILE|load_dotenv|resolve_env|dotenv' -Context 5,8
