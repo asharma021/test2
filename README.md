@@ -1,2 +1,1 @@
-Get-ChildItem .\src\extract_load -Recurse -Filter *.py |
-Select-String -Pattern 'DBT_PG_HOST|DBT_PG_USER|DBT_PG_PASSWORD|TARGET_PG|PG_TARGET|psycopg.connect'
+Select-String -Path .gitlab-ci.yml -Pattern 'EL_ENV_FILE|DBT_PG_HOST|SRC_PG_' -Context 3,3
