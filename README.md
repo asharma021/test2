@@ -1,1 +1,1 @@
-git push -u origin feature/postgres-el-cicd-testing
+Get-Content .gitlab-ci.yml | Select-Object -Skip 875 -First 75
