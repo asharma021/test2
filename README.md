@@ -1,8 +1,7 @@
-git branch --show-current
-git diff --check
-git diff -- .gitlab-ci.yml
+git status
+git log -1 --oneline
+Get-Command git
+git remote -v
 
 
-git add .gitlab-ci.yml
-git commit -m "Configure protected PostgreSQL EL testing branch"
-git push origin feature/postgres-el-cicd-testing
+git.exe push -u origin feature/postgres-el-cicd-testing
