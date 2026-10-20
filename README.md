@@ -1,2 +1,2 @@
-Get-Content .\src\extract_load\postgres\connections.py |
-Select-String -Pattern 'SRC_PG_HOST|SRC_PG_PORT|SRC_PG_DATABASE|SRC_PG_USER|SRC_PG_PASSWORD' -Context 2,3
+Get-Content .\src\extract_load\env.example |
+Select-String -Pattern 'SRC_PG_|TARGET_PG_|DBT_PG_' -Context 2,2
