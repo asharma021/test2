@@ -1,1 +1,1 @@
-myttb_cg_ref_identifier_type
+Get-Content .gitlab-ci.yml | Select-Object -Skip 475 -First 55
