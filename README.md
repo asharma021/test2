@@ -1,3 +1,1 @@
-That makes sense, Josh. I haven't made many changes yet since my main focus was getting the existing PostgreSQL Extract/Load pipeline running in DEV.
-
-I'm good with creating an MR into development for the initial review. My only concern is that if we need to merge for every small change or test, it could slow down development. Would it make sense to eventually have a dedicated DEV testing runner or protected testing branch so we can validate changes independently while keeping the existing runner secure?
+Yes Josh, my main focus right now is testing the GitLab CI/CD pipeline changes for PostgreSQL Extract/Load. Since the existing runner is protected, I think a dedicated protected testing branch would be a good approach. That way, we can test and troubleshoot pipeline changes without repeatedly merging into development. Once everything is validated, we can create an MR into development for review.
