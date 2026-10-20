@@ -1,2 +1,1 @@
-git diff --check
-git diff -- .gitlab-ci.yml
+git commit -m "Add manual DEV PostgreSQL EL verification job"
