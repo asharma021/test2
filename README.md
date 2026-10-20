@@ -1,1 +1,8 @@
-Yes Josh, my main focus right now is testing the GitLab CI/CD pipeline changes for PostgreSQL Extract/Load. Since the existing runner is protected, I think a dedicated protected testing branch would be a good approach. That way, we can test and troubleshoot pipeline changes without repeatedly merging into development. Once everything is validated, we can create an MR into development for review.
+git branch --show-current
+git diff --check
+git diff -- .gitlab-ci.yml
+
+
+git add .gitlab-ci.yml
+git commit -m "Configure protected PostgreSQL EL testing branch"
+git push origin feature/postgres-el-cicd-testing
