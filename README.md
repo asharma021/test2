@@ -1,13 +1,18 @@
 
-Write-Host "=== PROJECT PYTHON REQUIREMENT ==="
+# Confirm Python requirement
 Select-String -Path pyproject.toml -Pattern 'requires-python'
 
-Write-Host "=== AVAILABLE PYTHON VERSIONS ==="
+# Check installed Python versions
 uv python list --only-installed
 
-Write-Host "=== CURRENT ENVIRONMENT ==="
-python --version
-uv --version
+# Check virtual environment
+Test-Path .venv
 
-Write-Host "=== GIT STATUS ==="
+# Check available disk space
+Get-PSDrive C
+
+# Check package cache location
+uv cache dir
+
+# Confirm Git status
 git status --short
