@@ -1,3 +1,1 @@
-git add .gitlab-ci.yml
-git commit -m "Configure PostgreSQL DEV source credential mapping"
-git push origin pipeline-testing
+myttb_cg_ref_identifier_type
