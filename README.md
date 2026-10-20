@@ -1,1 +1,1 @@
-Get-Content .gitlab-ci.yml | Select-Object -Skip 475 -First 55
+Get-Content .\src\extract_load\postgres\connections.py | Select-Object -First 120
