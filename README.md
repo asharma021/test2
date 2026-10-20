@@ -1,3 +1,1 @@
-git branch --show-current
-git status --short
-git log -1 --oneline
+Get-Content .gitlab-ci.yml | Select-Object -Skip 510 -First 45
