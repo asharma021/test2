@@ -1,1 +1,1 @@
-git commit -m "Add manual DEV PostgreSQL EL verification job"
+git push -u origin feature/postgres-el-cicd-testing
