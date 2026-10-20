@@ -1,5 +1,16 @@
-Hi, I got the PostgreSQL Extract/Load pipeline running successfully on our protected testing branch. The DEV verification job is now failing because `SRC_PG_USER` is missing.
+postgres_extract_load:
+  extends: .el_upstream
+  variables:
+    EL_MODULE: "postgres"
+    EL_LABEL: "PostgreSQL Extract/Load"
+    SRC_PG_USER: "$DBT_PG_USER"
+    SRC_PG_PASSWORD: "$DBT_PG_PASSWORD"
 
-Can you confirm whether the source PostgreSQL database is the same as our existing DEV database (`DBT_PG_USER`) or a separate database? If separate, could you point me to the source connection details and credentials?
-
-Once confirmed, I should be able to complete the verification.
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "pipeline-testing" && $CI_PIPELINE_SOURCE == "web"'
+      variables:
+        DBT_TARGET: "dev"
+        EL_VERIFY_ONLY: "true"
+        DBT_SELECT: "myttb_cg_ref_identifier_type"
+        DBT_LOAD_MODE: "incremental"
+      when: manual
