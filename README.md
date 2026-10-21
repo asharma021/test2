@@ -1,1 +1,1 @@
-Select-String -Path .gitlab-ci.yml -Pattern 'EL_ENV_FILE|\.el_upstream' -Context 5,12
+Select-String -Path .gitlab-ci.yml -Pattern 'EL_ENV_FILE|dotenv|load_dotenv|--env-file' -Context 3,6
