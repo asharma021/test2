@@ -1,1 +1,3 @@
-Select-String -Path .gitlab-ci.yml -Pattern 'EL_ENV_FILE|dotenv|load_dotenv|--env-file' -Context 3,6
+Get-ChildItem .\src\extract_load -Recurse -Filter *.py |
+Select-String -Pattern 'EL_ENV_FILE|load_dotenv|dotenv_values' |
+Select-Object Path,LineNumber,Line
