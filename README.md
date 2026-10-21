@@ -1,3 +1,3 @@
-Thanks Josh. I see that the DEV Business Layer credentials are configured in GitLab, but the PostgreSQL Extract/Load source connection is resolving to a different server.
+Hi Josh and Lloyd, I've created the IVV environment in GitLab, and `ivv` is now available in the CI/CD variable scope dropdown.
 
-Should the source use the same DEV PostgreSQL host/database and credentials, or is it a separate source database? I want to make sure we're pointing the verification job to the correct environment.
+Lloyd, you should be able to add the IVV-specific `DBT_PG_USER` and `DBT_PG_PASSWORD` variables now. Please let me know once they're configured so I can proceed with pipeline validation.
