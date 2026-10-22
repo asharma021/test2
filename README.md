@@ -1,1 +1,3 @@
-Thanks Josh. I ran `whoami` through the existing GitLab runner on python-app05, and it returned `NT AUTHORITY\SYSTEM`. I'll verify the Windows service configuration to confirm whether the runner is configured to use `svc_python_oa` or Local System. Once confirmed, we can coordinate the appropriate shared-folder permissions.
+Thanks Josh, I reran the GitLab diagnostic and confirmed the runner is using `ttb\svc_python_oa`. The runner can now access `extract_load.env` successfully, although the intermediate directories still show as inaccessible.
+
+I'll proceed with the PostgreSQL DEV verify-only test for `myttb_cg_ref_identifier_type` and review the results.
