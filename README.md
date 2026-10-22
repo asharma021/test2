@@ -1,4 +1,1 @@
-git diff --check
-git add .gitlab-ci.yml
-git commit -m "Add runner identity diagnostic"
-git push origin pipeline-testing
+Hi Lloyd, I verified that my Windows account can access extract_load.env, but the GitLab runner still cannot. The runner diagnostic appears to show it is running under NT AUTHORITY\SYSTEM. Could you help confirm the runner service identity and whether it has the necessary network-share and NTFS read permissions for the _OA_Data_Sharing\OA\dbt_dev_env directory?
