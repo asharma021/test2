@@ -1,1 +1,12 @@
-Hi Lloyd, I verified that my Windows account can access extract_load.env, but the GitLab runner still cannot. The runner diagnostic appears to show it is running under NT AUTHORITY\SYSTEM. Could you help confirm the runner service identity and whether it has the necessary network-share and NTFS read permissions for the _OA_Data_Sharing\OA\dbt_dev_env directory?
+$path = '\\thqpcelerra01\ttb_common\_OA_Data_Sharing\OA\dbt_dev_env\extract_load.env'
+
+Test-Path -LiteralPath $path -PathType Leaf
+
+
+Get-Content -LiteralPath $path |
+Where-Object {
+    $_ -match '^\s*SRC_PG_(HOST|PORT|DATABASE|USER)\s*='
+} |
+ForEach-Object {
+    ($_ -split '=', 2)[0]
+}
