@@ -1,16 +1,5 @@
-$config = @{}
+Hi Michael, I'm not installing a new GitLab runner. I'm using the existing runner #766 (`python-app05`) for the PostgreSQL Extract/Load CI/CD pipeline.
 
-Get-Content -LiteralPath $path | ForEach-Object {
-    if ($_ -match '^\s*(SRC_PG_HOST|SRC_PG_PORT)\s*=\s*(.*)$') {
-        $config[$matches[1]] = $matches[2].Trim().Trim('"', "'")
-    }
-}
+The runner is executing jobs successfully, but it cannot access the shared `_OA_Data_Sharing\OA\dbt_dev_env` directory containing `extract_load.env`.
 
-if (-not $config['SRC_PG_HOST'] -or -not $config['SRC_PG_PORT']) {
-    Write-Output "Source host or port is missing"
-} else {
-    Test-NetConnection `
-        -ComputerName $config['SRC_PG_HOST'] `
-        -Port ([int]$config['SRC_PG_PORT']) `
-        -InformationLevel Quiet
-}
+My Windows account can access the file, but the runner diagnostic shows `NT AUTHORITY\SYSTEM`. I'm trying to confirm whether the existing runner service account has the required network-share and NTFS read permissions.
