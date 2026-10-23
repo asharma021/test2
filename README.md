@@ -1,11 +1,18 @@
-# Show original inherited rules
-git show origin/development:.gitlab-ci.yml |
-  Select-String -Pattern '^\.el_upstream:' -Context 0,35
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
 
-# Show current PostgreSQL job
-Select-String -Path .gitlab-ci.yml `
-  -Pattern '^postgres_extract_load:' -Context 0,25
+    - if: '$[[ inputs.skip_extract_load ]] == "true"'
+      when: never
 
-# Check remaining changes
-git status --short
-git diff --check
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      variables:
+        DBT_TARGET: "prod"
+
+    - if: '($CI_COMMIT_BRANCH == "pipeline-testing" || $CI_COMMIT_BRANCH == "development") && $CI_PIPELINE_SOURCE == "web"'
+      variables:
+        DBT_TARGET: "dev"
+        EL_VERIFY_ONLY: "true"
+        DBT_SELECT: "myttb_cg_ref_identifier_type"
+        DBT_LOAD_MODE: "incremental"
+      when: manual
