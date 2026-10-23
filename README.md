@@ -1,7 +1,3 @@
-Hi Josh/Michael, I completed the PostgreSQL DEV verify-only pipeline successfully yesterday. Today I added and ran a TEST environment diagnostic on runner #766 (`python-app05`), using the `ttb\svc_python_oa` account.
+Thanks Michael. The DEV environment file is working through the GitLab runner, but the TEST file path I checked returned NOT ACCESSIBLE. It may just be that the TEST file hasn't been created yet or is stored somewhere else.
 
-The diagnostic completed, but the candidate TEST `extract_load.env` path returned NOT ACCESSIBLE.
-
-Can you confirm whether TEST uses the same shared `extract_load.env` file as DEV or has a separate approved file? If separate, could you provide the correct path and confirm that the runner has access?
-
-Once confirmed, I'll configure and run the TEST single-table verify-only job.
+I'll check with Josh on the correct TEST configuration before making any further changes. Thanks for confirming the permissions.
