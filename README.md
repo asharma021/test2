@@ -1,27 +1,7 @@
-# 1. Confirm branch
-git branch --show-current
+Hi Josh/Michael, I completed the PostgreSQL DEV verify-only pipeline successfully yesterday. Today I added and ran a TEST environment diagnostic on runner #766 (`python-app05`), using the `ttb\svc_python_oa` account.
 
-# 2. Check changes
-git status
+The diagnostic completed, but the candidate TEST `extract_load.env` path returned NOT ACCESSIBLE.
 
-# 3. Validate whitespace
-git diff --check
+Can you confirm whether TEST uses the same shared `extract_load.env` file as DEV or has a separate approved file? If separate, could you provide the correct path and confirm that the runner has access?
 
-# 4. Stage only the GitLab YAML file
-git add .gitlab-ci.yml
-
-# 5. Check staged changes
-git diff --cached --stat
-git diff --cached --check
-
-# 6. Commit changes
-git commit -m "Add PostgreSQL TEST environment diagnostic job"
-
-# 7. Push to GitLab
-git push origin pipeline-testing
-
-# 8. Verify local and remote status
-git status
-
-# 9. Display latest commit
-git log -1 --oneline
+Once confirmed, I'll configure and run the TEST single-table verify-only job.
