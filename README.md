@@ -1,22 +1,16 @@
-# Confirm the working branch
-git branch --show-current
+# Review the complete PostgreSQL job
+Get-Content .gitlab-ci.yml |
+Select-Object -Skip 540 -First 35
 
-# Review all changes, including untracked files
+# Review upstream job configuration
+Get-Content .gitlab-ci.yml |
+Select-Object -Skip 300 -First 85
+
+# Check exact YAML changes
+git diff -- .gitlab-ci.yml
+
+# Confirm only intended changes remain
 git status --short
 
-# Check for whitespace errors
+# Check whitespace
 git diff --check
-
-# Inspect the PostgreSQL job
-Get-Content .gitlab-ci.yml |
-    Select-Object -Skip 540 -First 35
-
-# Inspect the upstream rules
-Get-Content .gitlab-ci.yml |
-    Select-Object -Skip 510 -First 25
-
-# Confirm the Python change is already committed
-git diff -- src/extract_load/common/cli.py
-
-# Check the untracked backup
-git status --short -- .gitlab-ci.yml.backup
