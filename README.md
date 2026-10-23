@@ -1,1 +1,1 @@
-Get-Content .gitlab-ci.yml | Select-Object -Skip 540 -First 30
+- if: '($CI_COMMIT_BRANCH == "pipeline-testing" || $CI_COMMIT_BRANCH == "development") && $CI_PIPELINE_SOURCE == "web"'
