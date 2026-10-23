@@ -1,3 +1,3 @@
-git status --short --branch
-git diff --check
-Get-Content .gitlab-ci.yml | Select-Object -Skip 543 -First 35
+git diff -- .gitlab-ci.yml
+git status --short
+git branch --show-current
