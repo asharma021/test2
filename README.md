@@ -1,1 +1,1 @@
-Test-Path -LiteralPath '\\tthqpcelerra01\ttb_common\OA_Data_Sharing'
+Test-NetConnection tthqpcelerra01 -Port 445
