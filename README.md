@@ -1,1 +1,1 @@
-Test-Path -LiteralPath '\\tthqpcelerra01\ttb_common\OA_Data_Sharing\OA\dbt_test_env\extract_load.env'
+Get-ChildItem -LiteralPath '\\tthqpcelerra01\ttb_common\OA_Data_Sharing\OA' -Directory -ErrorAction SilentlyContinue | Select-Object Name
