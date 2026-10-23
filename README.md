@@ -1,20 +1,27 @@
-check_postgres_test_config:
-  stage: extract_load
-  tags:
-    - python-app05
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "pipeline-testing" && $CI_PIPELINE_SOURCE == "web"'
-      when: manual
-  allow_failure: true
-  script:
-    - |
-      Write-Host "Checking TEST environment configuration"
-      Write-Host "Runner identity: $(whoami)"
+# 1. Confirm branch
+git branch --show-current
 
-      $testFile = "\\tthqpcelerra01\ttb_common\OA_Data_Sharing\OA\dbt_test_env\extract_load.env"
+# 2. Check changes
+git status
 
-      if (Test-Path -LiteralPath $testFile -PathType Leaf) {
-        Write-Host "TEST environment file: ACCESSIBLE"
-      } else {
-        Write-Host "TEST environment file: NOT ACCESSIBLE"
-      }
+# 3. Validate whitespace
+git diff --check
+
+# 4. Stage only the GitLab YAML file
+git add .gitlab-ci.yml
+
+# 5. Check staged changes
+git diff --cached --stat
+git diff --cached --check
+
+# 6. Commit changes
+git commit -m "Add PostgreSQL TEST environment diagnostic job"
+
+# 7. Push to GitLab
+git push origin pipeline-testing
+
+# 8. Verify local and remote status
+git status
+
+# 9. Display latest commit
+git log -1 --oneline
