@@ -1,3 +1,3 @@
-Thanks Michael. The DEV environment file is working through the GitLab runner, but the TEST file path I checked returned NOT ACCESSIBLE. It may just be that the TEST file hasn't been created yet or is stored somewhere else.
+Yes Josh, I agree. Since the DEV verify-only pipeline passed, I think merging into the development branch first is the right approach.
 
-I'll check with Josh on the correct TEST configuration before making any further changes. Thanks for confirming the permissions.
+I'll clean up the temporary testing configuration, review the changes, and create an MR for development. Once that's reviewed and merged, we can proceed with TEST validation through the normal promotion process.
