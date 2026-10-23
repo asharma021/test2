@@ -1,17 +1,11 @@
-# Review current changes
-git diff -- .gitlab-ci.yml
-
-# Check original production configuration
+# Show original inherited rules
 git show origin/development:.gitlab-ci.yml |
-  Select-String -Pattern 'postgres_extract_load:' -Context 0,25
+  Select-String -Pattern '^\.el_upstream:' -Context 0,35
 
-# Check current PostgreSQL configuration
+# Show current PostgreSQL job
 Select-String -Path .gitlab-ci.yml `
-  -Pattern '^postgres_extract_load:' `
-  -Context 0,25
+  -Pattern '^postgres_extract_load:' -Context 0,25
 
-# Check branch and working tree
-git status --short --branch
-
-# Verify whitespace
+# Check remaining changes
+git status --short
 git diff --check
