@@ -1,7 +1,3 @@
+git status --short --branch
 git diff --check
-git diff -- .gitlab-ci.yml
-git status --short
-
-
-
-    - if: '($CI_COMMIT_BRANCH == "pipeline-testing" || $CI_COMMIT_BRANCH == "development") && $CI_PIPELINE_SOURCE == "web"'
+Get-Content .gitlab-ci.yml | Select-Object -Skip 543 -First 35
