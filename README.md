@@ -1,6 +1,7 @@
 git diff --check
+git status --short
+
+
 git add .gitlab-ci.yml
-git commit -m "Add PostgreSQL TEST environment access check"
+git commit -m "Configure TEST environment access check on protected branch"
 git push -u origin feature/postgres-el-test-validation
-
-
