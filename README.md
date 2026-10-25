@@ -1,1 +1,6 @@
-git show origin/pipeline-testing:.gitlab-ci.yml | Select-String "check_postgres_test_access" -Context 0,12
+git diff --check
+git diff -- .gitlab-ci.yml
+
+git add .gitlab-ci.yml
+git commit -m "Add PostgreSQL TEST environment access check"
+git push -o ci.skip origin pipeline-testing
