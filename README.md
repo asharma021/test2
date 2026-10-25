@@ -1,1 +1,3 @@
-Select-String -Path .gitlab-ci.yml -Pattern "DBT_TARGET|EL_ENV_FILE|prod_mirror" -Context 3,6
+Get-Content '\\tthqpcelerra01\ttb_common\OA_Data_Sharing\OA\dbt_dev_env\extract_load.env' |
+  Where-Object { $_ -match '^\s*[A-Za-z_][A-Za-z0-9_]*\s*=' } |
+  ForEach-Object { ($_ -split '=', 2)[0].Trim() }
