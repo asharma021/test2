@@ -1,9 +1,5 @@
-git switch development
-git pull --ff-only origin development
-git status --short
-
-
 git switch -c feature/postgres-el-test-validation
+git branch --show-current
 
 
-Select-String -Path .gitlab-ci.yml -Pattern 'postgres_extract_load:','DBT_TARGET:','EL_ENV_FILE:','EL_VERIFY_ONLY:','pipeline-testing','development' -Context 3,12
+Get-Content .gitlab-ci.yml | Select-Object -Skip 540 -First 45
