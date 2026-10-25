@@ -1,6 +1,1 @@
-Get-Content src/extract_load/common/env.py |
-  Select-Object -Skip 75 -First 65
-
-  Select-String -Path dbt/profiles.yml `
-  -Pattern 'dev:|test:|prod:|env_var|target:' `
-  -Context 2,5
+git grep -n -i -E "pg_test|business_layer_test|TODO-test-host|TARGET_PG_USER" -- ':!uv.lock'
