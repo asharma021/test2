@@ -1,1 +1,6 @@
-git grep -n -E "SRC_PG_HOST|SRC_PG_USER|DBT_TARGET|DBT_PG_HOST|DBT_PG_USER" -- src/extract_load
+Get-Content src/extract_load/common/env.py |
+  Select-Object -Skip 75 -First 65
+
+  Select-String -Path dbt/profiles.yml `
+  -Pattern 'dev:|test:|prod:|env_var|target:' `
+  -Context 2,5
