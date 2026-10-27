@@ -1,10 +1,9 @@
-git grep -n -i -E "oablmsdb|business_layer_test|oa-tst-flexible-server|DBT_PG_DATABASE"
+git diff --check
+git add .gitlab-ci.yml dbt/profiles.yml
+git commit -m "Configure PostgreSQL IVV verify-only pipeline"
 
 
-$dir = '\\tthqpcelerra01\ttb_common\_OA_Data_Sharing\OA\dbt_dev_env'
-
-Get-ChildItem -LiteralPath $dir -Filter '*.env' |
-  Select-String -Pattern '^(DBT_TARGET|DBT_PG_DATABASE|PGDATABASE|TARGET_PG_DATABASE|SRC_PG_DATABASE(?:_IVV)?)='
+git branch --show-current
 
 
-  psql -h oa-tst-flexible-server.postgres.database.usgovcloudapi.net -p 5432 -U YOUR_APPROVED_USERNAME -d postgres -c "SELECT datname FROM pg_database WHERE datistemplate = false;"
+git push origin pipeline-testing
