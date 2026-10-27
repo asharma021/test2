@@ -1,3 +1,3 @@
-Select-String -Path src/extract_load/postgres/tables.yml `
-  -Pattern 'source:|profile:|myttb_cg_ref_identifier_type|ivv' `
-  -Context 3,5
+Select-String -Path src/extract_load/postgres/*.py `
+  -Pattern 'source_profile|source=|get_connection|source_schema|table_groups' `
+  -Context 3,4
