@@ -1,3 +1,3 @@
-Test-Path '\\tthqpcelerra01\ttb_common\OA_Data_Sharing\OA\dbt_dev_env'
+$path = '\\thqpcelerra01\ttb_common\_OA_Data_Sharing\OA\dbt_dev_env\extract_load.env'
 
-Get-ChildItem '\\tthqpcelerra01\ttb_common\OA_Data_Sharing\OA\dbt_dev_env'
+Test-Path -LiteralPath $path -PathType Leaf
