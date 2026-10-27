@@ -1,1 +1,1 @@
-Test-NetConnection -ComputerName oa-tst-flexible-server.postgres.database.usgovcloudapi.net -Port 5432
+It appears there is currently no network connectivity from Python-app05 to the OA TEST PostgreSQL database. Coordinating with the PS team to investigate. Once connectivity is restored, I will rerun the pipeline.
