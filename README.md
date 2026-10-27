@@ -1,3 +1,3 @@
-Select-String -Path src/extract_load/postgres/*.py `
-  -Pattern 'source_profile|source=|get_connection|source_schema|table_groups' `
-  -Context 3,4
+Select-String -Path src/extract_load/common/config.py `
+  -Pattern 'source_profile|source=|source_group|table_groups' `
+  -Context 4,6
