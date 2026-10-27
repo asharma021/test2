@@ -1,2 +1,1 @@
-Get-Content src/extract_load/postgres/connections.py |
-    Select-Object -Skip 85 -First 85
+Select-String -Path .gitlab-ci.yml -Pattern 'SRC_PG_|DBT_TARGET|EL_ENV_FILE' -Context 2,3
