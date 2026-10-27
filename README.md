@@ -1,1 +1,2 @@
-host: oa-tst-flexible-server.postgres.database.usgovcloudapi.net
+git diff --check
+git status --short
