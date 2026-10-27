@@ -1,1 +1,2 @@
-Write-Host "File accessible=$(Test-Path -LiteralPath $env:EL_ENV_FILE -PathType Leaf)"
+$path = '\\tthqpcelerra01\ttb_common\OA_Data_Sharing\OA\dbt_dev_env\extract_load.env'
+Test-Path -LiteralPath $path -PathType Leaf
