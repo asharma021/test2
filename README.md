@@ -1,4 +1,3 @@
-git status --short
+git branch --show-current
 
-
-git -c core.hooksPath=NUL commit -m "Configure PostgreSQL IVV verify-only pipeline"
+git push origin pipeline-testing
