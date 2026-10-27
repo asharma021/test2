@@ -1,1 +1,3 @@
-Hi team, has there been any recent changes to the Python-app05 server or its access permissions? I was testing the PostgreSQL extract/load pipeline for IVV, and noticed that even the DEV shared directory, which was previously accessible, is now showing as not accessible from the GitLab runner. Just wanted to check if anything changed on the server or network side.
+Test-NetConnection `
+  -ComputerName oa-tst-flexible-server.postgres.database.usgovcloudapi.net `
+  -Port 5432
