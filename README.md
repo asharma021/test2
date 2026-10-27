@@ -1,3 +1,1 @@
-git add .gitlab-ci.yml
-git -c core.hooksPath=NUL commit -m "Check DEV UNC access from GitLab runner"
-git push -o ci.skip origin pipeline-testing
+Hi team, has there been any recent changes to the Python-app05 server or its access permissions? I was testing the PostgreSQL extract/load pipeline for IVV, and noticed that even the DEV shared directory, which was previously accessible, is now showing as not accessible from the GitLab runner. Just wanted to check if anything changed on the server or network side.
