@@ -1,3 +1,3 @@
-Select-String -Path src/extract_load/common/config.py `
-  -Pattern '^def resolve_env' `
-  -Context 0,45
+Select-String -Path src/extract_load/postgres/tables.yml `
+  -Pattern 'source:|profile:|myttb_cg_ref_identifier_type|ivv' `
+  -Context 3,5
