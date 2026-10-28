@@ -1,1 +1,3 @@
-EL_CONFIG: "src/extract_load/postgres/tables_iw_verify.yml"
+git status
+git diff --check
+git diff -- .gitlab-ci.yml
