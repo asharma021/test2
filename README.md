@@ -1,3 +1,3 @@
-Select-String -Path "src/extract_load/common/cli.py" `
-  -Pattern "ConnectionPool|pool.source|source_profile" `
-  -Context 4,6
+Select-String -Path "src/extract_load/common/connections.py" `
+  -Pattern "def source|self.connect_source|profile" `
+  -Context 5,10
