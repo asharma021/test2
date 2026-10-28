@@ -1,2 +1,2 @@
-Get-ChildItem "src/extract_load" -Recurse -Filter "*.py" |
-Select-String -Pattern 'get_connection\(|pool.source\(|profile='
+Get-ChildItem "src/extract_load" -Recurse -File -Include *.yml,*.yaml,*.json,*.py |
+Select-String -Pattern 'myttb_cg_ref_identifier_type' -Context 5,10
