@@ -1,2 +1,2 @@
-Get-ChildItem "src/extract_load/common" -Recurse -Filter "*.py" |
-Select-String -Pattern 'class TableMapping|source=|source_profile|group.get|DBT_TARGET' -Context 2,4
+Get-Content "src/extract_load/common/config.py" |
+Select-Object -Skip 395 -First 105
