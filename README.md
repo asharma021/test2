@@ -1,1 +1,1 @@
-git stash push -u -m "Transfer ENL changes to new branch"
+git stash apply stash@{0}
