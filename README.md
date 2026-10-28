@@ -1,7 +1,3 @@
-Get-Content -LiteralPath $path |
-  Where-Object {
-    $_ -match '^\s*SRC_PG_(USER|PASSWORD|HOST|DATABASE)(?:_IVV)?\s*='
-  } |
-  ForEach-Object {
-    ($_ -split '=', 2)[0].Trim()
-  }
+Select-String -Path "src/extract_load/common/cli.py" `
+  -Pattern "ConnectionPool|pool.source|source_profile" `
+  -Context 4,6
