@@ -1,5 +1,1 @@
-$path = "\\tthqpcelerra01\ttb_common\OA_Data_Sharing\OA\dbt_dev_env\extract_load.env"
-
-Get-Content -LiteralPath $path |
-Where-Object { $_ -match '^\s*SRC_PG_(HOST|PORT|DATABASE|USER|PASSWORD)_IVW\s*=' } |
-ForEach-Object { ($_ -split '=',2)[0].Trim() }
+Josh, the database connection was restored this morning, and I'm currently working on the PostgreSQL extract/load IVV verify-only testing. We can go over the progress during today's session.
