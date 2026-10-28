@@ -1,1 +1,2 @@
-Select-String -Path "src/extract_load/common/env.py" -Pattern "resolve_env" -Context 5,20
+Get-ChildItem src/extract_load -Recurse -Filter *.py |
+Select-String -Pattern 'def resolve_env|resolve_env\s*='
