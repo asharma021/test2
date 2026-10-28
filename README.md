@@ -1,3 +1,1 @@
-Get-ChildItem -Path . -Recurse -File -Include *.py,*.yml,*.yaml,*.env,*.md |
-Where-Object { $_.FullName -notmatch '\\(\.venv|\.git)\\' } |
-Select-String -Pattern 'python_srvc_acct|SRC_PG_USER|svc_acct'
+Select-String -Path "src/extract_load/common/env.py" -Pattern "resolve_env" -Context 5,20
