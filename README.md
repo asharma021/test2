@@ -1,4 +1,1 @@
-git fetch origin
-git switch development
-git pull origin development
-git switch -c feature/postgres-el-ivv
+git stash push -u -m "Transfer ENL changes to new branch"
