@@ -1,6 +1,7 @@
-uv run --no-sync python -c "import yaml; p='src/extract_load/postgres/tables_ivv_verify.yml'; d=yaml.safe_load(open(p)); print(d)"
-
-
 Select-String -Path ".gitlab-ci.yml" `
-  -Pattern 'postgres_extract_load_test:|EL_CONFIG|--config|extract-load-postgres' `
-  -Context 5,15
+  -Pattern '^\s*\.el_job:|^\s*\.el_upstream:|EL_MODULE|EL_ARGS|uv run|extract-load' `
+  -Context 3,12 |
+  Select-Object -First 100
+
+
+  
