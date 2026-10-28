@@ -1,2 +1,1 @@
-Get-ChildItem src/extract_load -Recurse -Filter *.py |
-Select-String -Pattern 'def resolve_env|resolve_env\s*='
+Get-Content "src/extract_load/common/config.py" | Select-Object -Skip 496 -First 45
