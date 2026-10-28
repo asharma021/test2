@@ -1,1 +1,4 @@
-Get-Content "src/extract_load/common/config.py" | Select-Object -Skip 496 -First 45
+$path = '\\tthqpcelerra01\ttb_common\_OA_Data_Sharing\OA\dbt_dev_env\extract_load.env'
+
+Get-Content -LiteralPath $path |
+Where-Object { $_ -match '^\s*SRC_PG_USER(_[A-Z]+)?\s*=' }
