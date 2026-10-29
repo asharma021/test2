@@ -1,6 +1,7 @@
 
-git diff --name-status origin/development...HEAD
+git status
+git branch --show-current
 
-git log --oneline --left-right origin/development...HEAD
 
-git diff origin/development...HEAD -- .gitlab-ci.yml
+
+git merge --no-commit --no-ff origin/development
