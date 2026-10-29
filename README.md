@@ -1,1 +1,3 @@
-python -c "import yaml; yaml.SafeLoader.add_constructor('!reference', lambda loader,node: loader.construct_sequence(node)); c=yaml.safe_load(open('.gitlab-ci.yml',encoding='utf-8')); print('YAML parsed successfully'); print('DEV job:', 'postgres_extract_load_dev_incremental' in c); print('IVV job:', 'postgres_extract_load_ivv_incremental' in c); print('Guard:', '.postgres_incremental_guard' in c)"
+Select-String -Path .gitlab-ci.yml `
+  -Pattern '^\.postgres_incremental_guard:', '^postgres_extract_load_dev_incremental:', '^postgres_extract_load_ivv_incremental:', '^postgres_extract_load_test:' `
+  -Context 0,75
