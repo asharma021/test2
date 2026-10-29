@@ -1,1 +1,16 @@
-Completed PostgreSQL IVV connection and single-table verify-only testing through GitLab CI/CD. Source and target row counts matched successfully (12/12), with zero differences. Next steps include incremental-load testing, post-load validation, and implementing retry logic, checkpointing, and daily pipeline automation.
+
+git status
+git branch --show-current
+git branch -a
+git remote -v
+
+
+
+
+
+git fetch origin
+
+git log --oneline -5 origin/development
+git log --oneline -5 origin/pipeline-testing
+
+git log --oneline origin/pipeline-testing..origin/development
