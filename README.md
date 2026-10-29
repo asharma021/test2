@@ -1,4 +1,5 @@
-python -c "import yaml; yaml.safe_load(open('src/extract_load/postgres/tables.yml')); print('YAML valid')"
-
-
-Select-String -Path src/extract_load/postgres/tables.yml -Pattern "`t"
+git branch --show-current
+git status
+git add .gitlab-ci.yml
+git commit -m "Add PostgreSQL incremental load pipeline jobs and safety checks"
+git push -u origin HEAD
