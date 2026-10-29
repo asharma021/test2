@@ -1,1 +1,1 @@
-git stash apply stash@{0}
+Completed PostgreSQL IVV connection and single-table verify-only testing through GitLab CI/CD. Source and target row counts matched successfully (12/12), with zero differences. Next steps include incremental-load testing, post-load validation, and implementing retry logic, checkpointing, and daily pipeline automation.
