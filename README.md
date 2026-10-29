@@ -1,2 +1,1 @@
-$lines = Get-Content .gitlab-ci.yml
-$lines[49..64]
+python -c "import yaml; c=yaml.safe_load(open('.gitlab-ci.yml', encoding='utf-8')); print('YAML parsed successfully'); print('DEV job:', 'postgres_extract_load_dev_incremental' in c); print('IVV job:', 'postgres_extract_load_ivv_incremental' in c); print('Guard:', '.postgres_incremental_guard' in c)"
