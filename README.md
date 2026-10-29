@@ -1,3 +1,7 @@
-python -c "import yaml; print('PyYAML available')"
+Select-String -Path .gitlab-ci.yml -Pattern '^\s*---\s*$' |
+Select-Object LineNumber, Line
 
-python -c "import yaml; c=yaml.safe_load(open('.gitlab-ci.yml',encoding='utf-8')); print('DEV:',c['postgres_extract_load_dev_incremental']['extends']); print('IVV:',c['postgres_extract_load_ivv_incremental']['extends']); print('Guard:',len(c['.postgres_incremental_guard']['before_script']))"
+
+Select-String -Path .gitlab-ci.yml `
+-Pattern '^\.postgres_incremental_guard:', '^postgres_extract_load_dev_incremental:', '^postgres_extract_load_ivv_incremental:' `
+-Context 0,8
