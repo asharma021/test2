@@ -1,5 +1,3 @@
-git branch --show-current
-git status
-git add .gitlab-ci.yml
-git commit -m "Add PostgreSQL incremental load pipeline jobs and safety checks"
-git push -u origin HEAD
+uv run --no-sync extract-load-postgres --tag iw
+
+uv run --no-sync python -c "import psycopg; import yaml; print('Dependencies available')"
