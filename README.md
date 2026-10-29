@@ -1,7 +1,4 @@
 
-git status
-git branch --show-current
-
-
-
-git merge --no-commit --no-ff origin/development
+Select-String -Path .gitlab-ci.yml `
+  -Pattern '^\.el_job:', '^\.el_upstream:', '^postgres_extract_load:', '^postgres_extract_load_test:' `
+  -Context 2,35
