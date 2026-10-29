@@ -36,3 +36,24 @@ postgres_extract_load_ivv_incremental:
   allow_failure: false
   rules:
     - when: never
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+Get-ChildItem src/extract_load -Recurse -Filter "*.py" |
+  Select-String -Pattern "ensure_state_table|DBT_LOAD_MODE|incremental|upsert|checkpoint|watermark" |
+  Select-Object Path, LineNumber, Line
+
