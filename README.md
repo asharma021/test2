@@ -1,3 +1,9 @@
-Select-String -Path .gitlab-ci.yml `
-  -Pattern '^\.postgres_incremental_guard:', '^postgres_extract_load_dev_incremental:', '^postgres_extract_load_ivv_incremental:', '^postgres_extract_load_test:' `
-  -Context 0,75
+$env:CI_COMMIT_REF_PROTECTED = "true"
+$env:CI_COMMIT_BRANCH = "pipeline-testing"
+$env:CI_PIPELINE_SOURCE = "web"
+$env:CI_ENVIRONMENT_NAME = "ivv"
+$env:DBT_TARGET = "test"
+$env:EL_VERIFY_ONLY = "false"
+$env:DBT_LOAD_MODE = "incremental"
+
+Write-Host "Guard test environment variables configured"
