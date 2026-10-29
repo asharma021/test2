@@ -1,16 +1,8 @@
 
-git status
-git branch --show-current
-git branch -a
-git remote -v
+git status --short
 
+git rev-list --left-right --count origin/development...HEAD
 
+git log --oneline origin/development..HEAD
 
-
-
-git fetch origin
-
-git log --oneline -5 origin/development
-git log --oneline -5 origin/pipeline-testing
-
-git log --oneline origin/pipeline-testing..origin/development
+git diff --stat origin/development...HEAD
