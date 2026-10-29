@@ -1,7 +1,13 @@
 
-Get-ChildItem src/extract_load/postgres -Filter "tables*.yml" |
-  Select-Object Name
+Select-String -Path .gitlab-ci.yml `
+  -Pattern 'EL_ENV_FILE:', 'EL_CONFIG:', 'DBT_TARGET:', 'environment:' `
+  -Context 2,3
 
-Get-Content src/extract_load/postgres/tables.yml
 
-Get-Content src/extract_load/postgres/tables_ivv_verify.yml
+
+
+
+
+Select-String -Path .gitlab-ci.yml `
+  -Pattern '^postgres_extract_load_dev_incremental:', '^postgres_extract_load_ivv_incremental:' `
+  -Context 0,20
