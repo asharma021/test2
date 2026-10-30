@@ -1,3 +1,1 @@
-uv run --no-sync extract-load-postgres --tag iw
-
-uv run --no-sync python -c "import psycopg; import yaml; print('Dependencies available')"
+python -c "import yaml; c=yaml.safe_load(open('.gitlab-ci.yml', encoding='utf-8')); print('YAML OK'); print('DEV:', 'postgres_extract_load_dev_incremental' in c); print('IVV:', 'postgres_extract_load_ivv_incremental' in c); print('Guard:', '.postgres_incremental_guard' in c)"
