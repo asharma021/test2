@@ -1,9 +1,14 @@
-Continued PostgreSQL Extract/Load CI/CD implementation for DEV and IVV.
+git branch --show-current
+git status --short
+git diff --check
 
-Added dedicated DEV and IVV incremental-load jobs with protected-branch restrictions, manual execution controls, environment validation, and safety prechecks.
+git add .gitlab-ci.yml
 
-Updated the configuration paths and verified the GitLab pipeline configuration. The existing IVV single-table verify-only test completed successfully with matching source and target row counts (12/12).
+git diff --cached --check
+git diff --cached
 
-Incremental-load execution is currently pending confirmation that the required database tables and data are ready.
+git commit -m "Add PostgreSQL DEV and IVV incremental load safety checks"
 
-Next steps: Execute DEV incremental-load testing once the data is available, validate the loaded records and checkpointing behavior, then proceed with IVV incremental-load testing and post-load verification.
+git push -o ci.skip origin HEAD
+
+git status --short
