@@ -1,15 +1,18 @@
 
-# Inspect supported load modes
-Select-String -Path src/extract_load/common/cli.py `
-  -Pattern 'full','incremental','verify','load_mode' `
-  -Context 3,5
+# Check current branch
+git branch --show-current
+git status --short
 
-# Inspect PostgreSQL mapping for the known table
+# Find full-refresh implementation
+Get-ChildItem src/extract_load -Recurse -Filter *.py |
+Select-String -Pattern 'full.refresh','full_refresh','load_mode','incremental' |
+Select-Object -First 50 Path,LineNumber,Line
+
+# Inspect known table mapping
 Select-String -Path src/extract_load/postgres/tables.yml `
-  -Pattern 'myttb_cg_ref_identifier_type' `
-  -Context 5,8
+-Pattern 'ref_identifier_type' -Context 5,6
 
-# Find mirroring jobs
-Select-String -Path .gitlab-ci.yml `
-  -Pattern '^prod_mirror:', 'mirror', 'mirroring' `
-  -Context 3,8
+# Inspect mirroring implementation
+Get-ChildItem src/extract_load -Recurse -Filter *.py |
+Select-String -Pattern 'mirror' |
+Select-Object -First 30 Path,LineNumber,Line
