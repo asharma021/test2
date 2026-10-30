@@ -1,18 +1,15 @@
 
-git branch --show-current
-git status --short
+# Inspect supported load modes
+Select-String -Path src/extract_load/common/cli.py `
+  -Pattern 'full','incremental','verify','load_mode' `
+  -Context 3,5
 
-# Existing PostgreSQL E&L jobs
-Select-String -Path .gitlab-ci.yml `
-  -Pattern '^postgres_extract_load:', '^postgres_extract_load_dev_incremental:', '^postgres_extract_load_ivv_incremental:' `
-  -Context 0,22
-
-# Find existing mirroring jobs
-Select-String -Path .gitlab-ci.yml `
-  -Pattern 'mirror','mirroring','postgres' `
-  -Context 2,5
-
-# Inspect load-mode configuration
+# Inspect PostgreSQL mapping for the known table
 Select-String -Path src/extract_load/postgres/tables.yml `
-  -Pattern 'incremental:','strategy:','unique_key:','cursor_column:' `
-  -Context 2,4
+  -Pattern 'myttb_cg_ref_identifier_type' `
+  -Context 5,8
+
+# Find mirroring jobs
+Select-String -Path .gitlab-ci.yml `
+  -Pattern '^prod_mirror:', 'mirror', 'mirroring' `
+  -Context 3,8
