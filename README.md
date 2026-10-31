@@ -1,14 +1,17 @@
 Set-Location C:\Users\SharmaAashishR\oa-business-layer
-git add -- .gitlab-ci.yml
-git status --short          # expect: M  .gitlab-ci.yml  (staged) and ?? .gitlab-ci.yml.backup
-git commit -m "Restore approved postgres_extract_load block from development" -m "Removes test-only job-level variables (IVV mapping, verify-only, DBT_TARGET=test, single-table select) so they cannot reach the default-branch run. DEV verify-only stays manual on pipeline-testing/development. IVV verify (postgres_extract_load_test) and DEV/IVV incremental jobs unchanged."
-
-
-git push -o ci.skip origin pipeline-testing
-
-
-
-Set-Location C:\Users\SharmaAashishR\oa-business-layer
-Select-String -Path src\extract_load\common\*.py, src\extract_load\postgres\*.py `
-  -Pattern 'fnmatch|startswith\(|def \w*select\w*|load_state|checkpoint|fuzz|full_refresh|_el_' |
-  ForEach-Object { "{0}:{1}: {2}" -f $_.Filename, $_.LineNumber, $_.Line.Trim() }
+function Show-Lines([string]$name, [int]$a, [int]$b) {
+  $f = (Get-ChildItem src\extract_load -Recurse -Filter $name | Select-Object -First 1).FullName
+  "===== $name ($f) lines $a-$b ====="
+  $L = Get-Content $f
+  for ($i = $a; $i -le [Math]::Min($b, $L.Count); $i++) { "{0,4}: {1}" -f $i, $L[$i-1] }
+}
+$out = Join-Path $env:TEMP 'el_review.txt'
+& {
+  Show-Lines selection.py 1 120
+  Show-Lines sync.py 275 340
+  Show-Lines state.py 270 300
+  Show-Lines target.py 570 600
+  Select-String -Path (Get-ChildItem src\extract_load -Recurse -Filter *.py).FullName -Pattern 'DROP TABLE|CASCADE' |
+    ForEach-Object { "{0}:{1}: {2}" -f $_.Filename, $_.LineNumber, $_.Line.Trim() }
+} | Out-File -Encoding utf8 $out
+notepad $out
