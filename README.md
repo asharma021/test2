@@ -1,17 +1,13 @@
 Set-Location C:\Users\SharmaAashishR\oa-business-layer
-function Show-Lines([string]$name, [int]$a, [int]$b) {
-  $f = (Get-ChildItem src\extract_load -Recurse -Filter $name | Select-Object -First 1).FullName
-  "===== $name ($f) lines $a-$b ====="
-  $L = Get-Content $f
-  for ($i = $a; $i -le [Math]::Min($b, $L.Count); $i++) { "{0,4}: {1}" -f $i, $L[$i-1] }
-}
-$out = Join-Path $env:TEMP 'el_review.txt'
+$f = (Get-ChildItem src\extract_load -Recurse -Filter sync.py | Select-Object -First 1).FullName
+$L = Get-Content $f
+$s = ($L | Select-String -Pattern '^def _sync_incremental').LineNumber
+$out = Join-Path $env:TEMP 'el_incremental.txt'
 & {
-  Show-Lines selection.py 1 120
-  Show-Lines sync.py 275 340
-  Show-Lines state.py 270 300
-  Show-Lines target.py 570 600
-  Select-String -Path (Get-ChildItem src\extract_load -Recurse -Filter *.py).FullName -Pattern 'DROP TABLE|CASCADE' |
+  "===== sync.py _sync_incremental (from line $s) ====="
+  for ($i = $s; $i -le [Math]::Min($s + 130, $L.Count); $i++) { "{0,4}: {1}" -f $i, $L[$i-1] }
+  "===== unique_key usage ====="
+  Select-String -Path (Get-ChildItem src\extract_load -Recurse -Filter *.py).FullName -Pattern 'unique_key' |
     ForEach-Object { "{0}:{1}: {2}" -f $_.Filename, $_.LineNumber, $_.Line.Trim() }
 } | Out-File -Encoding utf8 $out
 notepad $out
