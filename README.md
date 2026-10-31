@@ -1,13 +1,20 @@
-Set-Location C:\Users\SharmaAashishR\oa-business-layer
-$f = (Get-ChildItem src\extract_load -Recurse -Filter sync.py | Select-Object -First 1).FullName
-$L = Get-Content $f
-$s = ($L | Select-String -Pattern '^def _sync_incremental').LineNumber
-$out = Join-Path $env:TEMP 'el_incremental.txt'
-& {
-  "===== sync.py _sync_incremental (from line $s) ====="
-  for ($i = $s; $i -le [Math]::Min($s + 130, $L.Count); $i++) { "{0,4}: {1}" -f $i, $L[$i-1] }
-  "===== unique_key usage ====="
-  Select-String -Path (Get-ChildItem src\extract_load -Recurse -Filter *.py).FullName -Pattern 'unique_key' |
-    ForEach-Object { "{0}:{1}: {2}" -f $_.Filename, $_.LineNumber, $_.Line.Trim() }
-} | Out-File -Encoding utf8 $out
-notepad $out
+-- 1. Does the target table exist?
+SELECT to_regclass('raw_myttb.myttb_controlled_group') AS target_exists;
+
+-- 2. Baseline (skip if target_exists is NULL)
+SELECT count(*) AS row_count,
+       count(DISTINCT id) AS distinct_ids,
+       max(last_modified_date) AS max_cursor
+FROM raw_myttb.myttb_controlled_group;
+
+-- 3. Existing load-state row (watermark) for this table, if any
+SELECT * FROM extract_load_meta._el_state s
+WHERE s::text ILIKE '%myttb_controlled_group%';
+
+-- 4. Views that depend on the target table
+SELECT DISTINCT v.relnamespace::regnamespace AS view_schema, v.relname AS view_name
+FROM pg_depend d
+JOIN pg_rewrite r ON r.oid = d.objid
+JOIN pg_class v   ON v.oid = r.ev_class
+WHERE d.refobjid = to_regclass('raw_myttb.myttb_controlled_group')
+  AND v.oid <> d.refobjid;
