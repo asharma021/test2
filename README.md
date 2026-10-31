@@ -1,10 +1,12 @@
-Set-Location C:\Users\SharmaAashishR\oa-business-layer
-$f = (Get-ChildItem src\extract_load -Recurse -Filter config.py | Select-Object -First 1).FullName
-$L = Get-Content $f
-& {
-  "===== config.py 28-50 ====="
-  for ($i = 28; $i -le 50; $i++) { "{0,4}: {1}" -f $i, $L[$i-1] }
-  "===== config.py 150-175 ====="
-  for ($i = 150; $i -le 175; $i++) { "{0,4}: {1}" -f $i, $L[$i-1] }
-} | Out-File -Encoding utf8 (Join-Path $env:TEMP 'el_strategy.txt')
-notepad (Join-Path $env:TEMP 'el_strategy.txt')
+-- Existing duplicate ids in the candidate table
+SELECT count(*) AS row_count,
+       count(DISTINCT id) AS distinct_ids,
+       count(*) - count(DISTINCT id) AS duplicate_rows
+FROM raw_myttb.myttb_controlled_group;
+
+-- Example duplicated ids, if any
+SELECT id, count(*) AS copies, min(last_modified_date) AS oldest, max(last_modified_date) AS newest
+FROM raw_myttb.myttb_controlled_group
+GROUP BY id HAVING count(*) > 1
+ORDER BY copies DESC
+LIMIT 20;
