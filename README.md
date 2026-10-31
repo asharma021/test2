@@ -1,1 +1,1 @@
-Get-Content "$env:TEMP\phaseA.ps1" -Raw | Invoke-Expression
+   notepad "$env:TEMP\stepB1.ps1"
