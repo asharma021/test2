@@ -1,14 +1,3 @@
-& {
-Set-Location C:\Users\SharmaAashishR\oa-business-layer
-git fetch origin --prune 2>$null
-"===== Commits on MR !6 branch (newest first) ====="
-git log --format='%h %ad : %s' --date=short origin/development..origin/feature/prod-el-readiness
-"===== Default-branch rules on MR !6 branch right now ====="
-$ci = @(git show origin/feature/prod-el-readiness:.gitlab-ci.yml | ForEach-Object { $_.TrimEnd("`r") })
-foreach ($tpl in '.el_upstream:', '.dbt_env:', 'postgres_extract_load:') {
-  $s = [array]::IndexOf($ci, $tpl); $e = $s + 1
-  while ($e -lt $ci.Count -and ($ci[$e] -match '^\s' -or $ci[$e] -eq '')) { $e++ }
-  $r = @(($s+1)..($e-1) | Where-Object { $ci[$_] -match 'CI_COMMIT_BRANCH == \$CI_DEFAULT_BRANCH' })[0]
-  "--- $tpl"; $ci[$r..([Math]::Min($r+4, $e-1))]
-}
-}
+about that red dbt_retry job in #69536: dbt_retry just re-runs whatever failed in an earlier dbt_run or dbt_test in the same pipeline. Those didn’t run in #69536, so there was nothing to retry and it errored out. It’s allowed to fail, so it doesn’t affect anything.
+
+Also, now that the pipeline is passing again, we can move forward with Umair’s dbt permit module.
