@@ -1,15 +1,13 @@
-& {
-Set-Location C:\Users\SharmaAashishR\oa-business-layer
-git fetch origin --prune 2>$null
-"===== MR !6 net change vs development (expect 2 files) ====="
-git diff --stat origin/development...origin/feature/prod-el-readiness
-"===== MR !6 into current development ====="
-git merge-tree --write-tree --name-only origin/development origin/feature/prod-el-readiness 2>&1 | Out-Null
-if ($LASTEXITCODE -eq 0) { Write-Host "CLEAN - MR !6 merges as-is" -ForegroundColor Green } else { Write-Host "CONFLICTS - send me this output" -ForegroundColor Red; git merge-tree --write-tree --name-only origin/development origin/feature/prod-el-readiness | Select-Object -Skip 1 }
-"===== Promotion preview: development into production ====="
-$o = git merge-tree --write-tree --name-only origin/production origin/development 2>&1
-if ($LASTEXITCODE -eq 0) { "CLEAN" } else { "CONFLICTS:"; $o | Select-Object -Skip 1 }
-"===== Promotion preview: development into test ====="
-$o2 = git merge-tree --write-tree --name-only origin/test origin/development 2>&1
-if ($LASTEXITCODE -eq 0) { "CLEAN" } else { "CONFLICTS:"; $o2 | Select-Object -Skip 1 }
-}
+Validation
+
+Changes: 2 files.
+dbt/profiles.yml prod target: host oa-prod-flexible-server, dbname oablmsdb, schema business_layer_prod.
+postgres_extract_load on production: manual, with DBT_SELECT=myttb_cg_ref_identifier_type.
+Pre-commit hooks passed; dbt parse --target prod passed.
+Pipeline editor simulation on production: postgres_extract_load shows as manual.
+Merges cleanly into the current development.
+Promotion preview: development → test is clean; development → production conflicts only in uv.lock, which will be resolved by keeping development’s version.
+
+Note for promotion: only Postgres is manual on production. The Oracle, SQL Server and Informix loads and the dbt jobs run automatically on the first production pipeline, as currently designed.
+
+Pending: prod write login from PS (DBT_PG_USER / DBT_PG_PASSWORD scoped to prod).
