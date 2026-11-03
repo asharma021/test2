@@ -17,21 +17,28 @@ if (git ls-remote --heads origin $branch) { Write-Host "Remote branch $branch al
 git switch --quiet -c $branch origin/development
 if ($LASTEXITCODE -ne 0) { Write-Host "Could not create branch - nothing done." -ForegroundColor Red; return }
 
-# --- edit: one guard line in the test ---
 $rel = 'dbt/tests/generic/no_deprecated_abbreviations.sql'
 $f = Join-Path $repo $rel
 $bytes = [IO.File]::ReadAllBytes($f)
 $bom = ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF)
 $t = [IO.File]::ReadAllText($f)
-$nl = if ($t -match "`r`n") { "`r`n" } else { "`n" }
-$rx = '(?m)^\{% if not execute -%\}[ \t]*(?=\r?$)'
-if ([regex]::Matches($t, $rx).Count -ne 1) { Undo "guard line '{% if not execute -%}' not found exactly once"; return }
-if ($t -match 'flags\.WHICH') { Undo "file already mentions flags.WHICH - stopping"; return }
-$new = "{# Also skip the registry query under 'dbt compile': dbt_compile runs before dbt_seed," + $nl +
-       "   so in a fresh or reset environment the seed table does not exist yet and compile" + $nl +
-       "   would deadlock the pipeline. The full check still runs under dbt test / dbt build. #}" + $nl +
-       "{% if not execute or flags.WHICH == 'compile' -%}"
-$t = [regex]::Replace($t, $rx, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $new })
+$nl = if ($t.Contains("`r`n")) { "`r`n" } else { "`n" }
+$old = '{% if not execute -%}'
+$count = ([regex]::Matches($t, [regex]::Escape($old))).Count
+if ($count -ne 1) {
+  Write-Host "Found '$old' $count time(s). Lines mentioning 'not execute':" -ForegroundColor Yellow
+  $i = 0; foreach ($ln in ($t -split "\r?\n")) { $i++; if ($ln -match 'not\s+execute') { "{0,4}: [{1}]" -f $i, $ln } }
+  Undo "guard text not found exactly once"; return
+}
+if ($t.Contains('flags.WHICH')) { Undo "file already mentions flags.WHICH - stopping"; return }
+$newBlock = @'
+{# Also skip the registry query under 'dbt compile': dbt_compile runs before dbt_seed,
+   so in a fresh or reset environment the seed table does not exist yet and compile
+   would deadlock the pipeline. The full check still runs under dbt test / dbt build. #}
+{% if not execute or flags.WHICH == 'compile' -%}
+'@
+$newBlock = ($newBlock -replace "\r?\n", $nl)
+$t = $t.Replace($old, $newBlock)
 [IO.File]::WriteAllText($f, $t, (New-Object Text.UTF8Encoding($bom)))
 
 $changed = @(git diff --name-only)
@@ -39,7 +46,6 @@ if (($changed -join '|') -ne $rel) { Undo "expected only $rel to change, got: $(
 Write-Host "`n===== DIFF =====" -ForegroundColor Cyan
 git --no-pager diff
 
-# --- validate: dbt parse (offline) ---
 Push-Location (Join-Path $repo 'dbt')
 uv run --no-sync dbt parse --profiles-dir . --target-path target\fix_parse_check
 $ok = ($LASTEXITCODE -eq 0)
@@ -47,7 +53,6 @@ Pop-Location
 if (-not $ok) { Undo "dbt parse failed"; return }
 Write-Host "dbt parse: PASSED" -ForegroundColor Green
 
-# --- commit (all hooks) + push (ci.skip) + MR into development ---
 $msgFile = Join-Path $env:TEMP 'oa_fix_msg.txt'
 @'
 Fix dbt_compile deadlock: skip abbreviation registry query during compile
