@@ -1,3 +1,1 @@
-about that red dbt_retry job in #69536: dbt_retry just re-runs whatever failed in an earlier dbt_run or dbt_test in the same pipeline. Those didn’t run in #69536, so there was nothing to retry and it errored out. It’s allowed to fail, so it doesn’t affect anything.
-
-Also, now that the pipeline is passing again, we can move forward with Umair’s dbt permit module.
+Hey Yves, your pipeline #69546 is failing on the same seed_abbreviation_standards error, which means your branch doesn’t have the fix from MR !9 yet. Can you merge the latest development into your branch and rerun? That brings in the updated no_deprecated_abbreviations test, and dbt_compile should pass. If your branch has its own changes to that test file, make sure the merge keeps the line {%- if not execute or flags.WHICH == 'compile' -%}.
