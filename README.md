@@ -23,22 +23,25 @@ $bytes = [IO.File]::ReadAllBytes($f)
 $bom = ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF)
 $t = [IO.File]::ReadAllText($f)
 $nl = if ($t.Contains("`r`n")) { "`r`n" } else { "`n" }
-$old = '{% if not execute -%}'
-$count = ([regex]::Matches($t, [regex]::Escape($old))).Count
-if ($count -ne 1) {
-  Write-Host "Found '$old' $count time(s). Lines mentioning 'not execute':" -ForegroundColor Yellow
-  $i = 0; foreach ($ln in ($t -split "\r?\n")) { $i++; if ($ln -match 'not\s+execute') { "{0,4}: [{1}]" -f $i, $ln } }
-  Undo "guard text not found exactly once"; return
-}
 if ($t.Contains('flags.WHICH')) { Undo "file already mentions flags.WHICH - stopping"; return }
-$newBlock = @'
+$rx = '\{%-?\s*if\s+not\s+execute\s*-?%\}'
+$hits = [regex]::Matches($t, $rx)
+if ($hits.Count -ne 1) {
+  Write-Host "Found guard $($hits.Count) time(s). Lines mentioning 'not execute':" -ForegroundColor Yellow
+  $i = 0; foreach ($ln in ($t -split "\r?\n")) { $i++; if ($ln -match 'not\s+execute') { "{0,4}: [{1}]" -f $i, $ln } }
+  Undo "guard not found exactly once"; return
+}
+$oldGuard = $hits[0].Value
+$newGuard = $oldGuard -replace 'not\s+execute', "not execute or flags.WHICH == 'compile'"
+$comment = @'
 {# Also skip the registry query under 'dbt compile': dbt_compile runs before dbt_seed,
    so in a fresh or reset environment the seed table does not exist yet and compile
    would deadlock the pipeline. The full check still runs under dbt test / dbt build. #}
-{% if not execute or flags.WHICH == 'compile' -%}
 '@
-$newBlock = ($newBlock -replace "\r?\n", $nl)
-$t = $t.Replace($old, $newBlock)
+$comment = ($comment -replace "\r?\n", $nl)
+Write-Host "Old guard: $oldGuard" -ForegroundColor Cyan
+Write-Host "New guard: $newGuard" -ForegroundColor Cyan
+$t = $t.Replace($oldGuard, $comment + $nl + $newGuard)
 [IO.File]::WriteAllText($f, $t, (New-Object Text.UTF8Encoding($bom)))
 
 $changed = @(git diff --name-only)
