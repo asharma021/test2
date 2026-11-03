@@ -1,18 +1,1 @@
-& {
-Set-Location C:\Users\SharmaAashishR\oa-business-layer
-git fetch origin --prune 2>$null
-if (git status --porcelain --untracked-files=no) { Write-Host "Uncommitted changes - nothing done." -ForegroundColor Red; return }
-$start = (git rev-parse --abbrev-ref HEAD).Trim()
-git switch --quiet feature/prod-el-readiness
-if ((git rev-parse HEAD).Trim() -ne (git rev-parse origin/feature/prod-el-readiness).Trim()) { Write-Host "Local feature branch differs from origin - stopping." -ForegroundColor Red; git switch --quiet $start; return }
-"===== MR !6 commit ====="
-git show --stat --format='%h %s' HEAD
-"===== dbt parse --target prod (no DB connection) ====="
-Push-Location dbt
-uv run --no-sync dbt parse --target prod --profiles-dir . --target-path target\prod_parse_check
-$ok = ($LASTEXITCODE -eq 0)
-Pop-Location
-git switch --quiet $start
-Write-Host "dbt parse --target prod on MR !6: $(if ($ok) { 'PASSED' } else { 'FAILED' })" -ForegroundColor $(if ($ok) { 'Green' } else { 'Red' })
-"Back on: $(git rev-parse --abbrev-ref HEAD)"
-}
+dbt_compile failure we’re seeing in the DEV pipelines. The job fails with relation "business_layer_seed.seed_abbreviation_standards" does not exist. It comes from the no_deprecated_abbreviations test, which reads the seed_abbreviation_standards seed table from the database while dbt compiles. That table is currently missing from the DEV database (oablmsdb), so compile stops there. The pipeline can’t recover on its own, because dbt_seed, the job that would recreate the table, only runs after dbt_compile succeeds. Our recent changes aren’t the cause: the MR only updates the test/IVV target and extract/load jobs, and our extract/load runs only wrote to raw_myttb. The Python environment issue from earlier is also fixed. To unblock it, someone with DEV database access needs to run this once from the dbt folder: uv run dbt seed --target dev --select seed_abbreviation_standards. That should let dbt_compile pass again for all pipelines. Longer term, it may be worth changing that test so it doesn’t query the database during compile, so this can’t block the pipeline again.
