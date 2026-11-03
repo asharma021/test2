@@ -1,13 +1,9 @@
 & {
 Set-Location C:\Users\SharmaAashishR\oa-business-layer
 git fetch origin --prune 2>$null
-"===== A. Umair's commit 5204ee3: files ====="
-git show --stat --format='%h %an : %s' 5204ee3
-"===== B. Umair's commit: extract/load config diff ====="
-git --no-pager show --format='' 5204ee3 -- src/extract_load | Select-Object -First 120
-"===== C. Who changed tables_ivv_verify.yml on development (ever) ====="
-git log --format='%h %ad %an : %s' --date=short origin/development -- src/extract_load/postgres/tables_ivv_verify.yml
-"===== D. The 'incremental -> full' permitmod commit ====="
-$c = (git log --format='%h' -1 --grep='permitmod' origin/development)
-if ($c) { git show --stat --format='%h %an : %s' $c; git --no-pager show --format='' $c -- src/extract_load | Select-Object -First 60 } else { "(not found)" }
+"1) Files in Umair's commit:"; git show --name-only --format='' 5204ee3
+"2) Commits that touched tables_ivv_verify.yml:"; git log --format='   %h %an : %s' origin/development -- src/extract_load/postgres/tables_ivv_verify.yml
+"3) tableau_views_stats still in tables.yml on development: $([bool](git show origin/development:src/extract_load/postgres/tables.yml | Select-String -SimpleMatch 'tableau_views_stats' -Quiet))"
+"4) 'incremental' lines added by Umair: $((git show --format='' 5204ee3 | Select-String -Pattern '^\+.*incremental').Count)"
+"5) permitmod commit:"; git log -1 --format='   %h %an : %s' --grep='permitmod' origin/development
 }
