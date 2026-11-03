@@ -19,12 +19,13 @@ $c = [IO.File]::ReadAllText($cp)
 $nl = if ($c.Contains("`r`n")) { "`r`n" } else { "`n" }
 $lines = New-Object System.Collections.ArrayList
 $null = $lines.AddRange(($c -split "\r?\n"))
+$ruleRx = '^\s+- if: [''"]?\$CI_COMMIT_BRANCH == \$CI_DEFAULT_BRANCH[''"]?\s*$'
 foreach ($tpl in @('.el_upstream:', '.dbt_env:')) {
   $starts = @(0..($lines.Count-1) | Where-Object { $lines[$_] -eq $tpl })
   if ($starts.Count -ne 1) { Undo "$tpl found $($starts.Count) times"; return }
   $s = $starts[0]; $e = $s + 1
   while ($e -lt $lines.Count -and ($lines[$e] -match '^\s' -or $lines[$e] -eq '')) { $e++ }
-  $hits = @(($s+1)..($e-1) | Where-Object { $lines[$_] -match "^\s+- if: '\`$CI_COMMIT_BRANCH == \`$CI_DEFAULT_BRANCH'\s*$" })
+  $hits = @(($s+1)..($e-1) | Where-Object { $lines[$_] -match $ruleRx })
   if ($hits.Count -ne 1) { Write-Host "Block $tpl :" -ForegroundColor Yellow; $lines[$s..($e-1)]; Undo "default-branch rule in $tpl found $($hits.Count) times (format differs)"; return }
   $r = $hits[0]
   if ($lines[$r+1] -notmatch '^\s+variables:\s*$' -or $lines[$r+2] -notmatch '^\s+DBT_TARGET:\s*"?prod"?\s*$') { Write-Host "Block $tpl :" -ForegroundColor Yellow; $lines[$s..($e-1)]; Undo "unexpected lines after default-branch rule in $tpl"; return }
