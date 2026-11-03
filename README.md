@@ -12,12 +12,16 @@ function Undo([string]$msg) {
 }
 if (git status --porcelain --untracked-files=no) { Write-Host "Uncommitted changes - nothing done." -ForegroundColor Red; return }
 git fetch origin --prune 2>$null
+"===== Commits on MR !6 branch (not in development) ====="
+git log --format='%h %ad %an : %s' --date=short "origin/development..origin/$branch"
+$target = (git log --format='%H' --grep='^Make prod-writing jobs manual' "origin/development..origin/$branch" | Select-Object -First 1)
+if (-not $target) { Write-Host "Manual-gating commit not found on the branch - nothing to revert. Send me the list above." -ForegroundColor Yellow; return }
+$already = (git log --format='%H' --grep='^Revert manual gating' "origin/development..origin/$branch" | Select-Object -First 1)
+if ($already) { Write-Host "Revert commit already exists on the branch - nothing to do." -ForegroundColor Yellow; return }
+Write-Host "Will revert: $(git log -1 --format='%h %s' $target)" -ForegroundColor Cyan
 git switch --quiet $branch
 if ($LASTEXITCODE -ne 0) { Write-Host "Could not switch to $branch - nothing done." -ForegroundColor Red; return }
 git reset --hard --quiet "origin/$branch"
-$head = (git log -1 --format='%h %s').Trim()
-Write-Host "Current tip: $head" -ForegroundColor Cyan
-if ($head -notmatch '^66bb6e5') { Undo "tip is not 66bb6e5 - stopping"; return }
 $msgFile = Join-Path $env:TEMP 'oa_revert_msg.txt'
 @'
 Revert manual gating of non-Postgres prod jobs
@@ -25,8 +29,8 @@ Revert manual gating of non-Postgres prod jobs
 Keep only postgres_extract_load manual on the default branch. Oracle, SQL
 Server, Informix extract/load and the dbt jobs keep their original behaviour.
 '@ | Set-Content -Path $msgFile -Encoding UTF8
-git revert --no-edit --no-commit 66bb6e5
-if ($LASTEXITCODE -ne 0) { Undo "revert failed"; return }
+git revert --no-edit --no-commit $target
+if ($LASTEXITCODE -ne 0) { Undo "revert had conflicts"; return }
 git commit --quiet -F $msgFile
 if ($LASTEXITCODE -ne 0) { Undo "commit failed (hook?)"; return }
 $py = Join-Path $env:TEMP 'oa_validate_revert.py'
@@ -43,7 +47,7 @@ assert p.get('when') == 'manual', p; print('OK postgres_extract_load manual:', p
 '@ | Set-Content -Path $py -Encoding UTF8
 uv run --no-sync python $py (Join-Path $repo '.gitlab-ci.yml')
 if ($LASTEXITCODE -ne 0) { Undo "validation failed"; return }
-Write-Host "`n===== MR !6 total change vs development (expect 2 files: profiles + postgres rule) =====" -ForegroundColor Cyan
+Write-Host "`n===== MR !6 total change vs development (expect 2 files) =====" -ForegroundColor Cyan
 git diff --stat origin/development...HEAD
 git push origin $branch -o ci.skip
 if ($LASTEXITCODE -ne 0) { Write-Host "PUSH FAILED - commit kept locally on $branch; send me the error." -ForegroundColor Red; return }
