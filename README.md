@@ -2,15 +2,24 @@
 Set-Location C:\Users\SharmaAashishR\oa-business-layer
 if (git status --porcelain --untracked-files=no) { Write-Host "Uncommitted changes - nothing done." -ForegroundColor Red; return }
 git fetch origin --prune 2>$null
-$orig = (git rev-parse --abbrev-ref HEAD).Trim()
-"===== 1. BEFORE (development) - the actual dbt error line ====="
-git switch --quiet --detach origin/development
-Push-Location dbt
-$out = @(uv run --no-sync dbt compile --target evaluator --profiles-dir . --select "test_name:no_deprecated_abbreviations" --target-path target\ab_before2 2>&1 | ForEach-Object { "$_" })
-Pop-Location
-git switch --quiet $orig
-$out | Select-String -Pattern 'Error|does not exist|Catalog|not found' | Select-Object -First 8 | ForEach-Object { $_.Line }
-"===== 2. Other compile-time DB lookups in models/macros/tests (development) ====="
-git grep -n -E 'run_query\(|get_column_values\(|get_columns_in_relation\(|get_relations_by_pattern\(|statement\(' origin/development -- dbt/models dbt/macros dbt/tests | Where-Object { $_ -notmatch 'no_deprecated_abbreviations' } | Select-Object -First 25
-"Back on: $(git rev-parse --abbrev-ref HEAD)"
+git switch --quiet pipeline-testing
+if ($LASTEXITCODE -ne 0) { Write-Host "Could not switch to pipeline-testing - nothing done." -ForegroundColor Red; return }
+$behind = (git rev-list --count HEAD..origin/pipeline-testing).Trim()
+$ahead  = (git rev-list --count origin/pipeline-testing..HEAD).Trim()
+if ($behind -ne '0' -or $ahead -ne '0') { Write-Host "Local pipeline-testing differs from origin (behind $behind / ahead $ahead) - stopping." -ForegroundColor Red; return }
+"===== Commits coming from development ====="
+git log --oneline origin/pipeline-testing..origin/development
+"===== Conflict check (in memory only) ====="
+$out = git merge-tree --write-tree --name-only origin/pipeline-testing origin/development 2>&1
+if ($LASTEXITCODE -ne 0) { Write-Host "CONFLICTS - nothing changed:" -ForegroundColor Red; $out | Select-Object -Skip 1; return }
+Write-Host "Clean - merging." -ForegroundColor Green
+git merge --no-ff --no-edit origin/development
+if ($LASTEXITCODE -ne 0) { git merge --abort 2>$null; Write-Host "Merge failed - aborted, nothing changed." -ForegroundColor Red; return }
+"===== Fix present on pipeline-testing? ====="
+if (Select-String -Path dbt\tests\generic\no_deprecated_abbreviations.sql -SimpleMatch "flags.WHICH == 'compile'" -Quiet) { Write-Host "YES - guard is in place" -ForegroundColor Green } else { Write-Host "NO - resetting" -ForegroundColor Red; git reset --hard --quiet origin/pipeline-testing; return }
+"===== MR !5 diff vs development after merge (should be only MR !5's own files) ====="
+git diff --stat origin/development HEAD
+git push origin pipeline-testing -o ci.skip
+if ($LASTEXITCODE -ne 0) { Write-Host "PUSH FAILED - merge kept locally; send me the error." -ForegroundColor Red; return }
+Write-Host "DONE: $(git log -1 --format='%h %s') pushed to pipeline-testing (ci.skip)." -ForegroundColor Green
 }
