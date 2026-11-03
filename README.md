@@ -1,15 +1,18 @@
 & {
 Set-Location C:\Users\SharmaAashishR\oa-business-layer
 git fetch origin --prune 2>$null
-"===== A. MR !5 profiles.yml diff (PHOTO please) ====="
-git --no-pager diff origin/development...origin/pipeline-testing -- dbt/profiles.yml
-git log --format='%h %ad %an : %s' --date=short origin/development..origin/pipeline-testing -- dbt/profiles.yml
-$ci = @(git show origin/pipeline-testing:.gitlab-ci.yml | ForEach-Object { $_.TrimEnd("`r") })
-"===== B. dbt_compile job ====="
-$i = [array]::IndexOf($ci, 'dbt_compile:')
-if ($i -ge 0) { $e = $i + 1; while ($e -lt $ci.Count -and ($ci[$e] -match '^\s' -or $ci[$e] -eq '')) { $e++ }; $ci[$i..($e-1)] } else { '(dbt_compile not found)' }
-"===== C. Where DBT_ALLOW_FAILURE / dbt_allow_failure is used ====="
-$ci | Select-String 'DBT_ALLOW_FAILURE|dbt_allow_failure' | ForEach-Object { "$($_.LineNumber): $($_.Line.Trim())" }
-"===== D. dbt_allow_failure input definition ====="
-$ci | Select-String -Pattern '^\s+dbt_allow_failure:' -Context 0,4 | ForEach-Object { $_.Line; $_.Context.PostContext }
+if (git status --porcelain --untracked-files=no) { Write-Host "Uncommitted changes - nothing done." -ForegroundColor Red; return }
+$start = (git rev-parse --abbrev-ref HEAD).Trim()
+git switch --quiet feature/prod-el-readiness
+if ((git rev-parse HEAD).Trim() -ne (git rev-parse origin/feature/prod-el-readiness).Trim()) { Write-Host "Local feature branch differs from origin - stopping." -ForegroundColor Red; git switch --quiet $start; return }
+"===== MR !6 commit ====="
+git show --stat --format='%h %s' HEAD
+"===== dbt parse --target prod (no DB connection) ====="
+Push-Location dbt
+uv run --no-sync dbt parse --target prod --profiles-dir . --target-path target\prod_parse_check
+$ok = ($LASTEXITCODE -eq 0)
+Pop-Location
+git switch --quiet $start
+Write-Host "dbt parse --target prod on MR !6: $(if ($ok) { 'PASSED' } else { 'FAILED' })" -ForegroundColor $(if ($ok) { 'Green' } else { 'Red' })
+"Back on: $(git rev-parse --abbrev-ref HEAD)"
 }
