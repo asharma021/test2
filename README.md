@@ -5,12 +5,13 @@ $base = 'remote-development'
 $branch = 'fix/abbrev-test-compile-remote-dev'
 $rel = 'dbt/tests/generic/no_deprecated_abbreviations.sql'
 $orig = (git rev-parse --abbrev-ref HEAD).Trim()
+function Regen { uv run --no-sync bl gen-refs | Out-Null }
 function Undo([string]$msg) {
   Write-Host "FAILED: $msg" -ForegroundColor Red
   git cherry-pick --abort 2>$null
   git reset --hard --quiet 2>$null
   git switch --quiet $orig 2>$null
-  if ((git rev-parse --abbrev-ref HEAD).Trim() -eq $orig) { git branch -D $branch 2>$null | Out-Null; Write-Host "Reverted: back on '$orig', '$branch' removed. Nothing pushed." -ForegroundColor Yellow }
+  if ((git rev-parse --abbrev-ref HEAD).Trim() -eq $orig) { git branch -D $branch 2>$null | Out-Null; Regen; Write-Host "Reverted: back on '$orig', '$branch' removed. Nothing pushed." -ForegroundColor Yellow }
 }
 if (git status --porcelain --untracked-files=no) { Write-Host "Uncommitted changes - nothing done." -ForegroundColor Red; return }
 git fetch origin --prune 2>$null
@@ -27,6 +28,8 @@ if (($changed -join '|') -ne $rel) { Undo "unexpected files: $($changed -join ',
 if (-not (Select-String -Path (Join-Path $repo $rel) -SimpleMatch "flags.WHICH == 'compile'" -Quiet)) { Undo "guard not present after apply"; return }
 Write-Host "`n===== DIFF =====" -ForegroundColor Cyan
 git --no-pager diff --cached
+Write-Host "Regenerating reference models for $base ..." -ForegroundColor Cyan
+Regen
 Push-Location (Join-Path $repo 'dbt')
 uv run --no-sync dbt parse --profiles-dir . --target-path target\fix_parse_check_rd
 $ok = ($LASTEXITCODE -eq 0)
@@ -42,5 +45,6 @@ git push -u origin $branch -o ci.skip -o merge_request.create -o "merge_request.
 if ($LASTEXITCODE -ne 0) { Write-Host "PUSH FAILED - commit kept locally on $branch; send me the error." -ForegroundColor Red; return }
 Write-Host "DONE: $(git log -1 --format='%h %s') pushed; MR into $base created." -ForegroundColor Green
 git switch --quiet $orig
-Write-Host "Back on $(git rev-parse --abbrev-ref HEAD)." -ForegroundColor Green
+Regen
+Write-Host "Back on $(git rev-parse --abbrev-ref HEAD) (reference models regenerated)." -ForegroundColor Green
 }
