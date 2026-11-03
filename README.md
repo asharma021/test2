@@ -1,12 +1,15 @@
 & {
 Set-Location C:\Users\SharmaAashishR\oa-business-layer
 git fetch origin --prune 2>$null
-"===== 1. MR !5 change to dbt/profiles.yml ====="
+"===== A. MR !5 profiles.yml diff (PHOTO please) ====="
 git --no-pager diff origin/development...origin/pipeline-testing -- dbt/profiles.yml
-"===== 2. Commit(s) that changed it ====="
 git log --format='%h %ad %an : %s' --date=short origin/development..origin/pipeline-testing -- dbt/profiles.yml
-"===== 3. Seed schema config in dbt_project.yml ====="
-git show origin/pipeline-testing:dbt/dbt_project.yml | Select-String -Pattern '^seeds:' -Context 0,12 | ForEach-Object { $_.Line; $_.Context.PostContext }
-"===== 4. How extract_load_only / skip inputs affect dbt_compile and dbt_seed ====="
-git show origin/pipeline-testing:.gitlab-ci.yml | Select-String 'extract_load_only|skip_compile|inputs\.' | ForEach-Object { "$($_.LineNumber): $($_.Line.Trim())" }
+$ci = @(git show origin/pipeline-testing:.gitlab-ci.yml | ForEach-Object { $_.TrimEnd("`r") })
+"===== B. dbt_compile job ====="
+$i = [array]::IndexOf($ci, 'dbt_compile:')
+if ($i -ge 0) { $e = $i + 1; while ($e -lt $ci.Count -and ($ci[$e] -match '^\s' -or $ci[$e] -eq '')) { $e++ }; $ci[$i..($e-1)] } else { '(dbt_compile not found)' }
+"===== C. Where DBT_ALLOW_FAILURE / dbt_allow_failure is used ====="
+$ci | Select-String 'DBT_ALLOW_FAILURE|dbt_allow_failure' | ForEach-Object { "$($_.LineNumber): $($_.Line.Trim())" }
+"===== D. dbt_allow_failure input definition ====="
+$ci | Select-String -Pattern '^\s+dbt_allow_failure:' -Context 0,4 | ForEach-Object { $_.Line; $_.Context.PostContext }
 }
