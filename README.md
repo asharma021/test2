@@ -1,1 +1,1 @@
-Hi Josh, I’m running a full pipeline on test. Should I set prod_mirror to true, or leave it false for now? Prod doesn’t have any raw tables loaded yet, so I’m thinking we turn it on after the first prod load.
+Test pipeline: env_setup and dbt_compile pass with the test credentials. The dbt build jobs were skipped because they depend on prod_mirror, which needs prod data first. Opening the test to production MR now.
