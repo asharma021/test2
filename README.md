@@ -1,7 +1,1 @@
-Hey Josh, MR !23 (development → test) is ready for your approval. It has:
-
-the prod_mirror env file fix;
-the correct key columns for the 7 messaging, banking and exportcert tables;
-the CI cleanup (temporary DEV/IVV jobs and tables_ivv_verify.yml removed).
-
-The pipeline is green. After it’s merged, I’ll run the TEST mirror and then promote to production.
+Quick end-of-day update: the TEST mirror works. All Postgres tables in prod mirrored into IVV, including the 7 with the key columns you gave me. The only failures are the Oracle, SQL Server and Informix tables (autoaudit, DABL, IRIS, UCCX), since they aren’t in prod yet. The cleanup is in test too. Tomorrow I’ll check the 4 AM prod run, promote test → production, and start on Oracle, SQL Server and Informix.
