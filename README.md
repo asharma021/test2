@@ -12,8 +12,6 @@ function Undo([string]$msg) {
 }
 if (git status --porcelain --untracked-files=no) { Write-Host "Uncommitted changes - nothing done." -ForegroundColor Red; return }
 git fetch origin --prune 2>$null
-"===== How the loader reads tables.yml (expect yaml.safe_load) ====="
-git grep -n -E 'safe_load|yaml\.load|ruamel|CSafeLoader' origin/development -- src/extract_load/common | Select-Object -First 5
 git branch -D $tmp 2>$null | Out-Null
 git switch --quiet -c $tmp origin/development
 if ($LASTEXITCODE -ne 0) { Write-Host "Could not create temp branch - nothing done." -ForegroundColor Red; return }
@@ -22,7 +20,7 @@ $origYml = Join-Path $env:TEMP 'oa_tables_orig.yml'
 Copy-Item $tf $origYml -Force
 $py = Join-Path $env:TEMP 'oa_fix_keys.py'
 @'
-import sys, yaml, copy
+import sys, re, yaml, copy
 p, orig = sys.argv[1], sys.argv[2]
 keys = {
     'message_details': 'message_details_id',
@@ -38,15 +36,18 @@ bom = raw.startswith('\ufeff')
 if bom: raw = raw[1:]
 nl = '\r\n' if '\r\n' in raw else '\n'
 lines = raw.split(nl)
+inc_rx = re.compile(r'^\s*incremental:\s*\*myttb_incremental\b')
+src_rx = lambda s: re.compile(r'^\s*-\s*source_table:\s*' + re.escape(s) + r'\s*(#.*)?$')
 for src, key in keys.items():
-    hits = [i for i, l in enumerate(lines) if l.strip() == f'- source_table: {src}']
+    hits = [i for i, l in enumerate(lines) if src_rx(src).match(l.strip('\r')) and not l.lstrip().startswith('#')]
     if len(hits) != 1: sys.exit(f'{src}: found {len(hits)} active source_table lines')
     h = hits[0]
-    inc = [i for i in range(h + 1, min(h + 4, len(lines))) if lines[i].strip() == 'incremental: *myttb_incremental']
-    if len(inc) != 1: print('\n'.join(lines[h:h+4])); sys.exit(f'{src}: expected "incremental: *myttb_incremental" right below')
+    inc = [i for i in range(h + 1, min(h + 4, len(lines))) if inc_rx.match(lines[i])]
+    if len(inc) != 1:
+        for j in range(h, min(h + 4, len(lines))): print(repr(lines[j]))
+        sys.exit(f'{src}: could not find the incremental line - send me the lines above')
     i = inc[0]
-    ind = lines[i][:len(lines[i]) - len(lines[i].lstrip())]
-    lines[i] = ind + 'incremental: {<<: *myttb_incremental, unique_key: [' + key + ']}'
+    lines[i] = re.sub(r'\*myttb_incremental\b', '{<<: *myttb_incremental, unique_key: [' + key + ']}', lines[i], count=1)
 open(p, 'wb').write((('\ufeff' if bom else '') + nl.join(lines)).encode('utf-8'))
 
 def load(f): return yaml.safe_load(open(f, encoding='utf-8-sig'))
