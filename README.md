@@ -1,12 +1,19 @@
-& {
-Set-Location C:\Users\SharmaAashishR\oa-business-layer
-git fetch origin --prune 2>$null
-"===== Josh's latest commits on development ====="
-git log -3 --format='%h %ad %an : %s' --date=short origin/development
-"===== Files changed in the latest commit ====="
-git show --stat --format='' origin/development
-"===== Active (not commented) groups in tables.yml ====="
-git show origin/development:src/extract_load/postgres/tables.yml | Select-String -Pattern '^\s*-\s*(source:|source_schema:)' | ForEach-Object { $_.Line.Trim() }
-"===== ITDS / Tableau lines still active? (expect none) ====="
-git show origin/development:src/extract_load/postgres/tables.yml | Select-String -Pattern 'itds|tableau' | Where-Object { $_.Line -notmatch '^\s*#' } | ForEach-Object { "{0,5}: {1}" -f $_.LineNumber, $_.Line.Trim() }
-}
+Promote development to test: exclude ITDS and Tableau from extract/load
+
+
+## Promote development to test
+
+Brings Josh's extract/load scope change (fda2d1c) to `test`.
+
+### Change
+- `src/extract_load/postgres/tables.yml`: ITDS and Tableau table groups commented out.
+  - **Tableau:** the runner server HWPOAAPP05 cannot reach the Tableau repository database (hwptableau02:8060); every table timed out after ~2 minutes and pushed the first prod run past the 6-hour job timeout.
+  - **ITDS:** excluded from the daily run for now. The first full load into prod is already done (itds_line 52.8M, itds_event_details 26.7M, itds_line_hts_list 17.8M+ rows); the loaded tables stay in prod.
+
+### Still active
+- myTTB / ARR groups: imdata, authdata, workflows, messaging, banking, foreignproducer, chemist-cert, exportcert, taxrefdata, ar_mod, claims.
+- IVV source groups (permit module tables into `raw_myttb_ivv`).
+
+### Impact
+- Config only; no code or pipeline changes.
+- Extract/load does not run on `test`.
