@@ -1,14 +1,1 @@
-& {
-$zip = Get-ChildItem "$env:USERPROFILE\Downloads" -Filter 'artifacts*.zip' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-if (-not $zip) { "No artifacts zip in Downloads"; return }
-$out = Join-Path $env:TEMP 'oa_mirror_log'
-Remove-Item $out -Recurse -Force -ErrorAction SilentlyContinue
-Expand-Archive $zip.FullName $out
-$log = Get-ChildItem $out -Recurse -Filter 'prod_mirror.log' | Select-Object -First 1
-"===== myttb_controlled_group ====="
-Select-String -Path $log.FullName -Pattern 'myttb_controlled_group failed' -Context 0,3 | ForEach-Object { $_.Line; $_.Context.PostContext }
-"===== export_certificates ====="
-Select-String -Path $log.FullName -Pattern 'export_certificates failed' -Context 0,3 | ForEach-Object { $_.Line; $_.Context.PostContext }
-"===== Distinct error reasons (top 10) ====="
-Select-String -Path $log.FullName -Pattern 'failed after .*?: (.*)$' | ForEach-Object { ($_.Matches[0].Groups[1].Value -replace '"[^"]*"', '"X"') } | Group-Object | Sort-Object Count -Descending | Select-Object -First 10 | ForEach-Object { "{0,4} x {1}" -f $_.Count, $_.Name }
-}
+myttb_controlled_group myttb_controlled_group_member myttb_auth_invitation myttb_auth_verified myttb_auth_status myttb_auth_domain_roles myttb_auth_domains myttb_auth_ein_submission myttb_auth_entity_info myttb_auth_parent_entity myttb_users myttb_event_log myttb_task myttb_task_action myttb_task_info myttb_message_details myttb_message_thread myttb_message_tracker myttb_notification myttb_bank_account myttb_fp_address myttb_fp_fda_data myttb_foreign_producer myttb_foreign_producer_assignment myttb_foreign_producer_authorization myttb_foreign_producer_contact myttb_foreign_producer_identifier myttb_foreign_producer_identifier_status myttb_foreign_producer_ownership export_certificates export_products app_risk arr_entity arr_event arr_request assessment_risk autoaudit_risk cms_risk company_compliance_detail company_compliance_summary holds_risk lexis_business_bankruptcy lexis_criminal lexis_individual_bankruptcy lexis_liens_details lexis_liens_risk_severity ttb_listed_risk unreported_coc_risk cbma_claims_request_line_item cbma_entry_line_item claim_payment claim_request
