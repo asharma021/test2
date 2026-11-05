@@ -31,24 +31,15 @@ keys = {
     'export_certificates': 'certificate_id',
     'export_products': 'export_product_id',
 }
-raw = open(p, 'rb').read().decode('utf-8')
-bom = raw.startswith('\ufeff')
-if bom: raw = raw[1:]
-nl = '\r\n' if '\r\n' in raw else '\n'
-lines = raw.split(nl)
-inc_rx = re.compile(r'^\s*incremental:\s*\*myttb_incremental\b')
-src_rx = lambda s: re.compile(r'^\s*-\s*source_table:\s*' + re.escape(s) + r'\s*(#.*)?$')
+data = open(p, 'rb').read()
+bom = data.startswith(b'\xef\xbb\xbf')
+text = data.decode('utf-8-sig')
 for src, key in keys.items():
-    hits = [i for i, l in enumerate(lines) if src_rx(src).match(l.strip('\r')) and not l.lstrip().startswith('#')]
-    if len(hits) != 1: sys.exit(f'{src}: found {len(hits)} active source_table lines')
-    h = hits[0]
-    inc = [i for i in range(h + 1, min(h + 4, len(lines))) if inc_rx.match(lines[i])]
-    if len(inc) != 1:
-        for j in range(h, min(h + 4, len(lines))): print(repr(lines[j]))
-        sys.exit(f'{src}: could not find the incremental line - send me the lines above')
-    i = inc[0]
-    lines[i] = re.sub(r'\*myttb_incremental\b', '{<<: *myttb_incremental, unique_key: [' + key + ']}', lines[i], count=1)
-open(p, 'wb').write((('\ufeff' if bom else '') + nl.join(lines)).encode('utf-8'))
+    rx = re.compile(r'(source_table:[ \t]*' + re.escape(src) + r'\b(?:(?!source_table:)[\s\S]){0,300}?incremental:[ \t]*)\*myttb_incremental\b')
+    hits = rx.findall(text)
+    if len(hits) != 1: sys.exit(f'{src}: found {len(hits)} matches')
+    text = rx.sub(lambda m: m.group(1) + '{<<: *myttb_incremental, unique_key: [' + key + ']}', text, count=1)
+open(p, 'wb').write((b'\xef\xbb\xbf' if bom else b'') + text.encode('utf-8'))
 
 def load(f): return yaml.safe_load(open(f, encoding='utf-8-sig'))
 n, o = load(p), load(orig)
@@ -76,7 +67,8 @@ if ($LASTEXITCODE -ne 0) { Undo "edit/validation failed - see message above"; re
 $changed = @(git diff --name-only)
 if (($changed -join '|') -ne 'src/extract_load/postgres/tables.yml') { Undo "unexpected files: $($changed -join ', ')"; return }
 Write-Host "`n===== DIFF =====" -ForegroundColor Cyan
-git --no-pager diff
+git --no-pager diff --stat
+git --no-pager diff | Select-String -Pattern '^[+-]\s' | ForEach-Object { $_.Line }
 $msgFile = Join-Path $env:TEMP 'oa_keys_msg.txt'
 $msg = "Set correct unique_key for messaging, banking and exportcert tables`n`nThese 7 tables inherited unique_key [id] from the shared myttb incremental`nsettings but have no id column, so prod_mirror failed building the key index`n(column ""id"" does not exist). Each now overrides unique_key with its real`nkey column; all other incremental settings are unchanged.`n"
 [IO.File]::WriteAllText($msgFile, $msg, (New-Object Text.UTF8Encoding($false)))
