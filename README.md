@@ -1,6 +1,7 @@
 & {
     $ErrorActionPreference = 'Continue'
     Set-Location 'C:\Users\SharmaAashishR\oa-business-layer'
+    git checkout -- .gitlab-ci.yml
     $dirty = git status --porcelain | Where-Object { $_ -notmatch '\.gitlab-ci\.yml\.backup$' }
     if ($dirty) { Write-Host "STOP: uncommitted changes:`n$dirty" -ForegroundColor Red; return }
     git checkout el-env-file-upstream-jobs
@@ -18,10 +19,9 @@
     $end = $lines.Count
     for ($j = $start + 1; $j -lt $lines.Count; $j++) { if ($lines[$j] -match '^\S') { $end = $j; break } }
 
-    # Production rule: quoted or unquoted
     $indent = $null
-    for ($i = $start; $i -lt $end; $i++) {
-        if ($lines[$i] -match '^(\s*)-\s+if:\s*[''"]?\$CI_COMMIT_BRANCH\s*==\s*\$CI_DEFAULT_BRANCH[''"]?\s*$') { $indent = $Matches[1]; $prodLine = $i + 1 }
+    for ($j = $start; $j -lt $end; $j++) {
+        if ($lines[$j] -match '^(\s*)-\s*if:\s*[''"]?\$CI_COMMIT_BRANCH\s*==\s*\$CI_DEFAULT_BRANCH') { $indent = $Matches[1]; $prodLine = $j + 1 }
     }
     if ($null -eq $indent -or $indent.Length -eq 0) { Write-Host "STOP: production rule not found in .el_upstream" -ForegroundColor Red; return }
     Write-Host "Production rule found on line $prodLine (indent $($indent.Length) spaces)" -ForegroundColor Green
@@ -29,15 +29,16 @@
     $last = $end - 1
     while ($last -gt $start -and [string]::IsNullOrWhiteSpace($lines[$last])) { $last-- }
 
-    $new = @(
-        $indent + '# TEMP: dev verify-only check of upstream source settings. Remove before promoting to test.',
-        $indent + '- if: ''$CI_COMMIT_BRANCH == "development" && $CI_PIPELINE_SOURCE == "web"''',
-        $indent + '  variables:',
-        $indent + '    DBT_TARGET: "dev"',
-        $indent + '    EL_VERIFY_ONLY: "true"',
-        $indent + '  when: manual'
+    $new = [string[]]@(
+        ($indent + '# TEMP: dev verify-only check of upstream source settings. Remove before promoting to test.'),
+        ($indent + '- if: ''$CI_COMMIT_BRANCH == "development" && $CI_PIPELINE_SOURCE == "web"'''),
+        ($indent + '  variables:'),
+        ($indent + '    DBT_TARGET: "dev"'),
+        ($indent + '    EL_VERIFY_ONLY: "true"'),
+        ($indent + '  when: manual')
     )
-    $lines.InsertRange($last + 1, [string[]]$new)
+    if ($new.Count -ne 6) { Write-Host "STOP: expected 6 lines, got $($new.Count)" -ForegroundColor Red; return }
+    $lines.InsertRange($last + 1, $new)
     [System.IO.File]::WriteAllText($path, ($lines -join $nl), (New-Object System.Text.UTF8Encoding($false)))
 
     Write-Host "`n=== numstat ===" -ForegroundColor Cyan
