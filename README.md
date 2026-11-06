@@ -10,7 +10,6 @@
     $text = [System.IO.File]::ReadAllText($path)
     if ($text -match 'TEMP: dev verify-only check') { Write-Host "STOP: temp rule already in file" -ForegroundColor Yellow; return }
     $nl = if ($text -match "`r`n") { "`r`n" } else { "`n" }
-    Write-Host ("Line endings: " + $(if ($nl -eq "`r`n") {'CRLF'} else {'LF'}))
     $lines = [System.Collections.Generic.List[string]]::new([string[]]($text -split "`r?`n"))
 
     $start = -1
@@ -19,11 +18,14 @@
     $end = $lines.Count
     for ($j = $start + 1; $j -lt $lines.Count; $j++) { if ($lines[$j] -match '^\S') { $end = $j; break } }
 
+    # Production rule: quoted or unquoted
     $indent = $null
     for ($i = $start; $i -lt $end; $i++) {
-        if ($lines[$i] -match '^(\s*)- if: ''\$CI_COMMIT_BRANCH == \$CI_DEFAULT_BRANCH''') { $indent = $Matches[1] }
+        if ($lines[$i] -match '^(\s*)-\s+if:\s*[''"]?\$CI_COMMIT_BRANCH\s*==\s*\$CI_DEFAULT_BRANCH[''"]?\s*$') { $indent = $Matches[1]; $prodLine = $i + 1 }
     }
-    if ($null -eq $indent) { Write-Host "STOP: production rule not found in .el_upstream" -ForegroundColor Red; return }
+    if ($null -eq $indent -or $indent.Length -eq 0) { Write-Host "STOP: production rule not found in .el_upstream" -ForegroundColor Red; return }
+    Write-Host "Production rule found on line $prodLine (indent $($indent.Length) spaces)" -ForegroundColor Green
+
     $last = $end - 1
     while ($last -gt $start -and [string]::IsNullOrWhiteSpace($lines[$last])) { $last-- }
 
