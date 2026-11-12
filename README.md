@@ -1,11 +1,12 @@
 & {
-# ===== New branch from development + cherry-pick Oracle fix (DI-4653) =====
+# ===== New branch from development + cherry-pick Oracle fix (DI-4653) - v2 =====
 $ErrorActionPreference = 'Continue'; $env:GIT_TERMINAL_PROMPT = '0'
-$Repo = 'C:\Users\SharmaAashishR\oa-business-layer'
-$File = 'src/extract_load/oracle/tables.yml'
-$Base = 'origin/development'
-$Br   = 'feature/el-failure-notifications'
-$Fix  = '64e2bc3d'
+$Repo   = 'C:\Users\SharmaAashishR\oa-business-layer'
+$File   = 'src/extract_load/oracle/tables.yml'
+$Base   = 'origin/development'
+$Br     = 'feature/el-failure-notifications'
+$FixBr  = 'fix/oracle-el-disable-vw-fact-sot-fst-returns'
+$Pat    = 'Disable VW_FACT_SOT_FST_RETURNS'
 if (-not (Test-Path (Join-Path $Repo '.git'))) { Write-Host 'ABORT: not a git repo' -ForegroundColor Red; return }
 Set-Location $Repo
 function G { @(& git --no-pager -c core.quotepath=off @args 2>&1 | ForEach-Object { "$_" }) }
@@ -18,6 +19,13 @@ function Revert([string]$why) {
   if ($created) { G branch -D $Br | Out-Null }
   Write-Host "Reverted. Now on: $((G rev-parse --abbrev-ref HEAD) -join '')" -ForegroundColor Yellow
 }
+function IsGoodFix([string]$c) {
+  if (-not $c) { return $false }
+  $parents = ((G rev-list --parents -n 1 $c) -join '') -split ' '
+  $files   = G show --name-only --format= $c | Where-Object { $_ }
+  $subj    = (G log -1 --format=%s $c) -join ''
+  return ($parents.Count -eq 2) -and (@($files).Count -eq 1) -and ($files -eq $File) -and ($subj -like "*$Pat*")
+}
 
 # --- pre-checks ---
 G fetch origin development production | Out-Null
@@ -26,18 +34,25 @@ if ($tracked) { Write-Host 'ABORT: uncommitted tracked changes:' -ForegroundColo
 if ((G rev-parse --verify -q "refs/heads/$Br")) { Write-Host "ABORT: local branch $Br exists" -ForegroundColor Red; return }
 if ((G ls-remote --heads origin $Br)) { Write-Host "ABORT: remote branch $Br exists" -ForegroundColor Red; return }
 
-# --- is the fix already on development? ---
-$devHas = -not ((G show "${Base}:$File") | Where-Object { $_ -match '^\s*- source_table: VW_FACT_SOT_FST_RETURNS\s*$' })
-# --- locate fix commit ---
-if (-not ((G cat-file -t $Fix) -join '' -eq 'commit')) {
-  $Fix = (G log origin/production --format=%h -1 --grep='Disable VW_FACT_SOT_FST_RETURNS') -join ''
+$rx = '^\s*- source_table: VW_FACT_SOT_FST_RETURNS\s*$'
+$devHas  = -not ((G show "${Base}:$File") | Where-Object { $_ -match $rx })
+$prodHas = -not ((G show "origin/production:$File") | Where-Object { $_ -match $rx })
+
+# --- locate the real (non-merge) fix commit ---
+$Fix = ''
+foreach ($ref in @("refs/heads/$FixBr", "refs/remotes/origin/$FixBr")) {
+  $c = (G rev-parse --verify -q --short=8 $ref) -join ''
+  if (IsGoodFix $c) { $Fix = $c; $src = $ref; break }
 }
-$prodHas = -not ((G show "origin/production:$File") | Where-Object { $_ -match '^\s*- source_table: VW_FACT_SOT_FST_RETURNS\s*$' })
-Write-Host "Fix commit          : $Fix"
+if (-not $Fix) {
+  $c = (G log origin/production --no-merges --format=%h -1 --grep=$Pat) -join ''
+  if (IsGoodFix $c) { $Fix = $c; $src = 'origin/production (no-merges search)' }
+}
+Write-Host "Fix commit          : $Fix  [$src]"
 Write-Host "Fix on production   : $prodHas"
 Write-Host "Fix on development  : $devHas"
-if (-not $prodHas) { Write-Host 'ABORT: production does not contain the fix - check before continuing.' -ForegroundColor Red; return }
-if (-not $devHas -and -not $Fix) { Write-Host 'ABORT: fix commit not found.' -ForegroundColor Red; return }
+if (-not $prodHas) { Write-Host 'ABORT: production does not contain the fix.' -ForegroundColor Red; return }
+if (-not $devHas -and -not $Fix) { Write-Host 'ABORT: no valid non-merge fix commit found.' -ForegroundColor Red; return }
 
 # --- branch ---
 $baseSha = (G rev-parse --short=8 $Base) -join ''
@@ -45,7 +60,7 @@ $sw = G switch -c $Br $Base
 if ($LASTEXITCODE -ne 0) { Write-Host "ABORT: $sw" -ForegroundColor Red; return }
 $created = $true
 
-# --- cherry-pick (skip if development already has it) ---
+# --- cherry-pick ---
 if ($devHas) {
   Write-Host 'Development already has the fix - no cherry-pick needed.' -ForegroundColor Yellow
 } else {
