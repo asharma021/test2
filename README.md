@@ -1,5 +1,5 @@
 & {
-# ===== READ-ONLY: E&L failure / notification inventory (DI-4659) =====
+# ===== READ-ONLY: E&L failure / notification inventory (DI-4659) - v2 =====
 $ErrorActionPreference = 'Continue'; $env:GIT_TERMINAL_PROMPT = '0'
 $Repo = 'C:\Users\SharmaAashishR\oa-business-layer'
 $Refs = @('HEAD', 'origin/production')
@@ -10,7 +10,6 @@ function G { @(& git --no-pager -c core.quotepath=off @args 2>&1 | ForEach-Objec
 $statusBefore = G status --porcelain --untracked-files=all
 $headBefore   = (G rev-parse HEAD) -join ''
 
-# --- python helper (YAML parse incl. GitLab !reference tags) ---
 $py = $null
 if (Test-Path '.venv\Scripts\python.exe') { $py = (Resolve-Path '.venv\Scripts\python.exe').Path }
 elseif (Get-Command py -ErrorAction SilentlyContinue) { $py = 'py' }
@@ -25,12 +24,25 @@ def unk(loader, suffix, node):
     if isinstance(node, yaml.SequenceNode): return {"!" + suffix: loader.construct_sequence(node, deep=True)}
     return {"!" + suffix: loader.construct_mapping(node, deep=True)}
 L.add_multi_constructor("!", unk)
-RESERVED = {"stages","variables","default","include","workflow","image","services","before_script","after_script","cache"}
+RESERVED = {"stages","variables","default","include","workflow","image","services","before_script","after_script","cache","spec"}
 for ref in sys.argv[1:]:
     p = subprocess.run(["git","show","%s:.gitlab-ci.yml" % ref], capture_output=True, text=True, encoding="utf-8")
-    d = yaml.load(p.stdout, Loader=L) or {}
-    print("=" * 100); print("REF %s" % ref); print("=" * 100)
-    print("include :", d.get("include")); print("workflow:", d.get("workflow")); print("default :", d.get("default"))
+    docs = [x for x in yaml.load_all(p.stdout, Loader=L) if isinstance(x, dict)]
+    d = {}
+    spec = None
+    for x in docs:
+        if "spec" in x and len(x) == 1: spec = x["spec"]
+        else: d.update(x)
+    print("=" * 100); print("REF %s  (documents: %d)" % (ref, len(docs))); print("=" * 100)
+    if spec:
+        print("spec.inputs:")
+        for k, v in (spec.get("inputs") or {}).items():
+            v = v or {}
+            print("   %-28s type=%s default=%s options=%s" % (k, v.get("type"), v.get("default"), v.get("options")))
+    print("stages  :", d.get("stages"))
+    print("include :", d.get("include"))
+    print("workflow:", d.get("workflow"))
+    print("default :", d.get("default"))
     jobs = {k: v for k, v in d.items() if k not in RESERVED and isinstance(v, dict)}
     def resolved(name, seen=None):
         seen = seen if seen is not None else set(); j = jobs.get(name, {}); out = {}
@@ -49,18 +61,8 @@ for ref in sys.argv[1:]:
 '@ | Set-Content -Path $pyFile -Encoding ASCII
 
 $log = New-Object System.Collections.Generic.List[string]
-$inv = & $py -I $pyFile @Refs 2>&1 | ForEach-Object { "$_" }
-$inv | ForEach-Object { $log.Add($_) }
+& $py -I $pyFile @Refs 2>&1 | ForEach-Object { $log.Add("$_") }
 
-# --- existing notification mechanisms ---
-$pat = 'webhook|teams|smtp|Send-MailMessage|mailto|notif|incoming|office\.com|Invoke-RestMethod|Invoke-WebRequest|curl |on_failure|when: *always'
-foreach ($ref in $Refs) {
-  $log.Add(''); $log.Add(('=' * 100)); $log.Add("NOTIFICATION-RELATED HITS in $ref"); $log.Add(('=' * 100))
-  $hits = G grep -n -i -I -E $pat $ref -- '.gitlab-ci.yml' '*.ps1' '*.sh' 'ci/*' 'scripts/*'
-  if ($hits) { $hits | Select-Object -First 120 | ForEach-Object { $log.Add("  " + ($_ -replace "^$([regex]::Escape($ref)):", '')) } } else { $log.Add('  (none)') }
-}
-
-# --- post-check + output ---
 $same = (($statusBefore -join "`n") -eq ((G status --porcelain --untracked-files=all) -join "`n")) -and ($headBefore -eq ((G rev-parse HEAD) -join ''))
 $log.Add(''); $log.Add("Working tree + HEAD unchanged: $same")
 $log | Set-Content -Path $Out -Encoding UTF8
