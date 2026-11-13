@@ -1,1 +1,1 @@
-
+Hi Ben, dev dbt jobs are failing because the dev database is rejecting writes: “cannot execute INSERT in a read-only transaction” (oa-dev-flexible-server / oablmsdb, pipeline #70742, job dbt_compile). Could you check whether the server went read-only because storage is nearly full, or whether default_transaction_read_only was set on the database or the dbt user?
