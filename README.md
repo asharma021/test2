@@ -1,5 +1,5 @@
 & {
-# ===== DI-4662: E&L env pre-flight check =====
+# ===== DI-4662: E&L env pre-flight check - v2 (ty-clean import) =====
 $ErrorActionPreference = 'Continue'; $env:GIT_TERMINAL_PROMPT = '0'
 $Repo  = 'C:\Users\SharmaAashishR\oa-business-layer'
 $Br    = 'feature/el-failure-notifications'
@@ -50,12 +50,13 @@ import os
 import sys
 from pathlib import Path
 
-from extract_load.common.env import (
-    ELConfigError,
-    load_el_env,
-    target_credentials,
-    target_endpoint,
-)
+from extract_load.common import env as el_env
+
+# The loaders' own configuration error class(es), found by type so this check
+# keeps working if the class is renamed.
+CONFIG_ERRORS: tuple[type[Exception], ...] = tuple(
+    obj for obj in vars(el_env).values() if isinstance(obj, type) and issubclass(obj, Exception)
+) or (RuntimeError,)
 
 # Settings each source needs that have no default in its connections module.
 REQUIRED: dict[str, tuple[str, ...]] = {
@@ -94,8 +95,8 @@ def run_checks(job: str) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
     try:
-        path = load_el_env()
-    except ELConfigError as exc:
+        path = el_env.load_el_env()
+    except CONFIG_ERRORS as exc:
         return [f"EL env file not usable: {exc}"], warnings
     if path is None:
         warnings.append("no EL env file found; using the process environment only")
@@ -108,10 +109,10 @@ def run_checks(job: str) -> tuple[list[str], list[str]]:
             warnings.append(f"{name} not set; only profile variants found: {found}")
         else:
             errors.append(f"{name} is missing or empty in the EL env file")
-    for check in (target_credentials, target_endpoint):
+    for check in (el_env.target_credentials, el_env.target_endpoint):
         try:
             check()
-        except ELConfigError as exc:
+        except CONFIG_ERRORS as exc:
             errors.append(f"load target: {exc}")
     return errors, warnings
 
@@ -205,7 +206,7 @@ function Run-Scenario([string]$name, [string]$envContent, [hashtable]$vars, [int
   foreach ($k in $touch) { [Environment]::SetEnvironmentVariable($k, $null, 'Process') }
   $d = Join-Path $testRoot $name; New-Item -ItemType Directory -Force -Path $d | Out-Null
   $envPath = Join-Path $d 'extract_load.env'
-  if ($null -ne $envContent) { [IO.File]::WriteAllText($envPath, $envContent) }
+  if ($envContent) { [IO.File]::WriteAllText($envPath, $envContent) }
   $env:EL_ENV_FILE = $envPath; $env:DBT_TARGET = 'dev'; $env:EL_LOG_DIR = (Join-Path $d 'logs')
   foreach ($k in $vars.Keys) { [Environment]::SetEnvironmentVariable($k, $vars[$k], 'Process') }
   $out = (& $py -I $PyPath 2>&1 | ForEach-Object { "$_" }) -join "`n"; $rc = $LASTEXITCODE
@@ -223,7 +224,7 @@ $questOnly = "MSSQL_USER_QUEST=q_user`nMSSQL_PASSWORD_QUEST=QuestSecret789`n" + 
 Write-Host ''; Write-Host '--- env check self-test ---' -ForegroundColor Cyan
 $t1 = Run-Scenario 'oracle_ok'      $oraOk          @{ CI_JOB_NAME = 'oracle_extract_load' }    0 @('passed for oracle_extract_load')
 $t2 = Run-Scenario 'oracle_no_user' $oraMissingUser @{ CI_JOB_NAME = 'oracle_extract_load' }    1 @('ORACLE_USER is missing')
-$t3 = Run-Scenario 'no_env_file'    $null           @{ CI_JOB_NAME = 'oracle_extract_load' }    1 @('EL env file not usable')
+$t3 = Run-Scenario 'no_env_file'    ''              @{ CI_JOB_NAME = 'oracle_extract_load' }    1 @('EL env file not usable')
 $t4 = Run-Scenario 'sqlsrv_missing' $oraOk          @{ CI_JOB_NAME = 'sqlserver_extract_load' } 1 @('MSSQL_USER is missing', 'MSSQL_PASSWORD is missing')
 $t5 = Run-Scenario 'profile_only'   $questOnly      @{ CI_JOB_NAME = 'sqlserver_extract_load' } 0 @('only profile variants', 'passed')
 $t6 = Run-Scenario 'bypass'         $oraMissingUser @{ CI_JOB_NAME = 'oracle_extract_load'; EL_ENV_CHECK = 'off' } 0 @('skipped')
