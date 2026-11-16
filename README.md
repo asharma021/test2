@@ -1,56 +1,29 @@
-Close now (move to Done)
+DI-4642 — Create automated pipeline that will run E&L daily → CLOSE
 
-DI-4642 — Create automated pipeline that will run E&L daily
+The daily E&L pipeline is in place. A 4 AM scheduled pipeline on production runs the Oracle, SQL Server and PostgreSQL extract/loads automatically every day (Informix also runs and is expected to fail until its source is set up, see DI-4655). Oracle and SQL Server have loaded successfully on the daily runs since 11/10. Failure alerting and the health summary are tracked in DI-4659 and DI-4663. Closing.
 
-Why it can close: the daily 4 AM prod schedule has been running automatically since early November and loads every configured source.
+DI-4654 — SQL Server extract/load to prod → CLOSE
 
-The daily E&L pipeline is in place: a 4 AM scheduled pipeline on production runs the Oracle, SQL Server and PostgreSQL extract/loads automatically every day (Informix runs too and is expected to fail until its source setup is complete, DI-4655). Since 11/10 Oracle and SQL Server have loaded successfully each day (Oracle 163/163 tables after the BL view fix in DI-4653). Failure alerting and health reporting are tracked separately in DI-4659 / DI-4663. Closing.
+sqlserver_extract_load runs daily in the 4 AM prod schedule and has completed successfully on each run since 11/10 (e.g., pipeline #70387). No open issues. Closing.
 
-DI-4654 — SQL Server extract/load to prod
+(Before closing, confirm the last few scheduled runs show sqlserver_extract_load green.)
 
-Why it can close: sqlserver_extract_load has passed in the daily prod runs since 11/10.
-Before you close it, open the last 3–4 scheduled prod pipelines and confirm sqlserver_extract_load is green in each one.
+DI-4653 — Oracle extract/load to prod → IN PROGRESS
 
-sqlserver_extract_load is running daily in the 4 AM prod schedule and has completed successfully on every run since 11/10 (e.g., pipeline #70387). No failures to address. Closing.
+Oracle E&L runs daily in prod. DABL.VW_FACT_SOT_FST_RETURNS was removed from the config (BL view whose date logic fails with ORA-01841; view SQL fix is on the backlog), so the expected table count is now 163, not 164. Runs since the fix load 163/163 tables with 0 errors. Run time on 11/10 was 2h 14m. Remaining: compare run time to the job time limit and review the iris_trade_names_mv row-count difference.
 
-Update and keep In Progress
+DI-4655 — Informix (UCCX) extract/load to prod → IN PROGRESS (blocked)
 
-DI-4653 — Oracle extract/load to prod
+Blocked on the Informix source setup (Ben). The job runs in the daily prod schedule and fails as expected until then. It’s listed in EL_EXPECTED_FAILURES, so it doesn’t trigger the failure alert. Will remove it from that list and close once the source is configured and the job passes.
 
-What’s still open: the run time against the job time limit, and the iris_trade_names_mv row-count review.
+DI-4659 — E/L failure notifications → IN PROGRESS
 
-Status: the Oracle E&L is running daily in prod. DABL.VW_FACT_SOT_FST_RETURNS was removed from the config (BL view; its date logic fails with ORA-01841; view SQL fix on Yves’s backlog), so the expected table count is now 163, not 164. Runs since the fix load 163/163 tables with 0 errors. Run time on 11/10 was 2h 14m.
+Merged to development on 11/13. The new el_health_check job fails scheduled pipelines on unexpected E&L failures, so they’re no longer hidden as warnings, and GitLab’s failed-pipeline email is sent. Next: promote to test and production and confirm on the first 4 AM run. Per Josh, also add the BL project to the PS team’s existing pipeline email notification framework (following up with Dyanna).
 
-Remaining from the description: (1) compare run time against the job time limit, (2) review the iris_trade_names_mv row-count difference. Will close once both are done.
+DI-4662 — Env setting integrity check → IN PROGRESS
 
-DI-4655 — Informix (UCCX) extract/load to prod
+Merged to development on 11/13. scripts/el_env_check.py runs at the start of every E&L job and fails fast with a clear message if the EL env file or a required setting is missing (the cause of the 11/5–11/8 ORACLE_USER failures). Values are never printed. Next: promote to test and production, and confirm “EL env check passed” on the first 4 AM run before closing.
 
-What’s still open: it’s blocked until Ben finishes the source setup.
+DI-4663 — Daily E/L health summary → IN PROGRESS
 
-Still blocked on the Informix source setup (Ben). The job runs in the daily prod schedule and fails as expected until then. It’s listed in EL_EXPECTED_FAILURES so it doesn’t trigger the failure alert. Remove it from that list once the source is configured and the job passes.
-
-DI-4659 — E&L failure notifications
-
-What’s still open: promotion to test and production, plus Josh’s request to use the PS team’s email framework.
-
-Merged to development (11/13): an el_health_check job now fails scheduled pipelines on unexpected E&L failures, so they’re no longer hidden as warnings, and GitLab’s failed-pipeline email fires. Expected failures are listed in EL_EXPECTED_FAILURES (currently Informix).
-
-Next: (1) promote to test → production and confirm on the first 4 AM run; (2) per Josh, add the BL project to the PS team’s existing pipeline email notification framework. Following up with Dyanna.
-
-DI-4662 — Env setting integrity check
-
-What’s still open: promotion to test and production, then confirmation on a live run.
-
-Merged to development (11/13): scripts/el_env_check.py runs at the start of every E&L job and fails fast with a clear message if the EL env file or a required setting is missing (the cause of the 11/5–11/8 ORACLE_USER failures). Values are never printed, and errors are reported by the health check.
-
-Next: promote to test → production and confirm “EL env check passed” in each E&L job on the first 4 AM run. Will close after that.
-
-DI-4663 — Daily E&L health summary
-
-What’s still open: the Pages change isn’t in GitLab yet, and the summary isn’t published on the daily run.
-
-Summary (el_health_summary.md) is produced by el_health_check on every scheduled run (merged to development 11/13).
-
-Per Josh’s feedback, the next change publishes the summary with the GitLab Pages site (pages job writes it into public/, report-only, never fails the job). It’s committed on the working branch and will go into GitLab via MR once the GitHub → GitLab mirror sync is restored.
-
-Note: the pages job doesn’t currently run on the daily 4 AM prod pipeline, so the Pages copy will appear on full builds. Daily runs are covered by the job artifact and the failure alert. Follow-up needed to publish it from the daily run.
+The summary (el_health_summary.md) is produced by el_health_check on every scheduled run (merged to development on 11/13). Per Josh’s feedback, a follow-up change publishes it with the GitLab Pages site. It’s committed on the working branch and goes into GitLab by MR once the GitHub → GitLab sync is restored. Note: pages doesn’t currently run on the daily 4 AM pipeline, so publishing it from the daily run needs a follow-up.
