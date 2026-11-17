@@ -1,6 +1,5 @@
 Promote development to test: E&L reliability (DI-4659, DI-4662, DI-4663, DI-4653)
 
-
 ## What & why
 
 Promotes this week's E&L reliability work from development to test:
