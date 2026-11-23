@@ -1,9 +1,43 @@
-Your three In Progress tickets are DI-4653, DI-4655 and DI-4662. DI-4659 and DI-4663 are already in Done.
+Skip IVV-only Postgres tables in prod; add inactive Oracle target job (DI-4665)
 
-DI-4662 — Env setting integrity check → move to Done
+## What & why
 
-In production since 11/17 and running at the start of every E&L job; it passed for Oracle, SQL Server and Postgres on the daily 4 AM runs. Kept unchanged in the DI-4659 rework (promoting test → production today). Closing.
+Promote the latest CI/CD and Extract/Load configuration
+changes from gh-pull-aashish-dev into development.
 
-DI-4653 — Oracle extract/load to prod → keep In Progress
+The objective is to improve pipeline execution,
+environment configuration, and reliability of the
+automated Extract/Load process.
 
-Oracle loads 163/163 tables daily (VW_FACT_SOT_FST_RETURNS removed from config). Run time is 2h 14m against a 6h job limit. As part of the DI-4659 rework (promoting to production today), an Oracle load failure will now fail the pipeline instead of showing as a warning. Remaining: review the iris_trade_names_mv row-count difference, then close.
+## Type of change
+
+- [ ] dbt models / macros / tests / seeds
+- [x] Extract/load (`src/extract_load/`, `tables.yml`)
+- [x] CI/CD, tooling, or developer setup
+- [ ] Reference Data Update
+- [ ] Documentation only
+
+## Data impact
+
+- Models / sources affected: Extract/Load pipeline
+  configuration and associated environment settings.
+- Full refresh after merge: Not anticipated.
+- Grain, key, or column renames affecting downstream
+  consumers: None anticipated.
+- Validation: Development pipeline execution and
+  Extract/Load job results to be verified.
+
+## Checklist
+
+- [ ] `uv run pre-commit run` passes.
+- [ ] `uv run pyright` passes, if applicable.
+- [ ] `uv run bl evaluate` reviewed, if applicable.
+- [ ] CI/CD pipeline execution validated.
+- [ ] Extract/Load job execution validated.
+- [ ] Environment configuration verified.
+- [ ] Merge request reviewed and approved.
+
+## Deployment plan
+
+Merge into the development branch and validate pipeline
+execution before promoting changes to higher environments.
