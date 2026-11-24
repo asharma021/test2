@@ -1,3 +1,1 @@
-Hi Umair, the development pipeline #72069 fails at dbt_compile with this error:
-Model 'int_permitmod_fact_submissions_stage' depends on a node named 'int_ref_…days' which was not found.
-It looks like it comes from the "Added ref_days and completed_date_id logic" change. That model references an int_ref_…days model that doesn't exist. env_setup ran the ref-model generator fresh and created only the existing 6 ref models, so it isn't a cache issue. Could you add or register that ref model, or update the reference? Until then dbt_compile fails on development and we can't promote dev to test/prod.
+
