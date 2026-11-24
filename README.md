@@ -1,3 +1,3 @@
-No, that’s not the current setup. The prod Postgres E&L job reads all its tables from one source, the prod MyTTB database, and writes to OABLMSDB prod. There’s no option to read specific tables from IVV, so the myttb IVV tables fail in prod because they don’t exist in the prod source.
-
-To load them from IVV into OABLMSDB prod, we’d need a separate prod job that reads only those tables from the IVV source. For that I’d need the exact table list, a read-only IVV source account in the env file, network access from the prod runner to the IVV database, and confirmation that it’s OK for a prod job to read from IVV.
+Agreed, a tag works for picking the tables, so no list is needed. I’ll check which tag those tables have in tables.yml.
+The tag only chooses the tables, though. The connection comes from the job’s env file, and the prod job’s source is prod MyTTB. So the IVV E&L still needs its own job with the IVV source settings. It would be the same loader with --select tag:<ivv tag>, reading from IVV and writing to OABLMSDB prod.
+Josh, OK to set it up that way?
