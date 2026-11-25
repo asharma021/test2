@@ -1,1 +1,3 @@
-Got it, thanks Josh. So the fix is in tables.yml: the workflow and Permit Mod tables need source: IVV instead of production, and then the existing prod Postgres job loads them from IVV.
+$f = '\\thqpcelerra01\ttb_common\_OA_Data_Sharing\OA\dbt_dev_env\extract_load.env'
+Select-String -Path $f -Pattern '^\s*SRC_PG_\w*\s*=' |
+  ForEach-Object { ($_.Line -split '=', 2)[0].Trim() } | Sort-Object
