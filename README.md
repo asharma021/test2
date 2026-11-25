@@ -1,1 +1,1 @@
-
+Yves, you were right, the Oracle target job fails in dev as expected. I ran it once on development only (pipeline #72253). The job itself runs fine and the env check passes, but it stops before connecting because the target settings aren't set: TARGET_ORA_HOST, TARGET_ORA_SERVICE, TARGET_ORA_USER, TARGET_ORA_PASSWORD (to be added as dev-scoped CI/CD variables). Nothing was read or written. Once those are added (and the SRC_PG_*_BUSINESS_LAYER settings in the EL env file), I can run it again. It stays inactive otherwise.
