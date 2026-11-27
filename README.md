@@ -1,1 +1,3 @@
-
+Yes, that’s the command. The job runs:
+uv run extract-load-postgres --target-db oracle --select tag:legacy_oracle --log-file "logs\oracle_target_load.log"
+The log shows it using tables_to_legacy.yml, “Load target: Oracle” and “Starting PostgreSQL extract/load into Oracle for 7 table(s)”. It connected to Oracle fine. The source line shows [profile=business_layer] -> host=prod-flexible-server-customapps… database=myttbmsdb, so it’s reading MyTTB instead of the Business Layer DB, because SRC_PG_*_BUSINESS_LAYER isn’t set in the EL env file. On your machine, are those set in your local .env? If you send me the values (or add them), I’ll rerun.
